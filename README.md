@@ -12,14 +12,15 @@ privately to **security@basaltic.sh**, following [SECURITY.md](SECURITY.md).
 
 ## Installation
 
-The package is available from this GitHub repository. Add it as a Composer VCS
-repository, then require the versioned package (Packagist registration is not
-required):
+Install [basaltic-sh/sdk-php from Packagist](https://packagist.org/packages/basaltic-sh/sdk-php):
 
 ```bash
-composer config repositories.basaltic vcs https://github.com/basaltic-sh/sdk-php
 composer require basaltic-sh/sdk-php:^0.1
 ```
+
+Packagist distributes the source from this repository's versioned release tags.
+The package's source and distribution references in `composer.lock` identify the
+same public GitHub commit. The PHP namespace is `Basaltic`.
 
 ## Quick start
 
