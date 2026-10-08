@@ -242,7 +242,7 @@ final class Transport
             return $this->backoff($attempt);
         }
         $date = strtotime($retryAfter);
-        $delay = ctype_digit($retryAfter) ? (float) $retryAfter
+        $delay = preg_match('/^[0-9]+$/D', $retryAfter) ? (float) $retryAfter
             : ($date !== false ? max(0.0, $date - ($this->config->clock)()) : $this->backoff($attempt));
         // Never retry sooner than requested. Return the error if the wait exceeds our budget.
         return $delay <= $this->config->maxDelay ? $delay : null;
