@@ -18,7 +18,7 @@ required):
 
 ```bash
 composer config repositories.basaltic vcs https://github.com/basaltic-sh/sdk-php
-composer require basaltic/sdk-php:^0.1
+composer require basaltic-sh/sdk-php:^0.1
 ```
 
 ## Quick start

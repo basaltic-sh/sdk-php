@@ -251,8 +251,8 @@ final class Transport
     private static function userAgent(): string
     {
         $version = class_exists(\Composer\InstalledVersions::class)
-            && \Composer\InstalledVersions::isInstalled('basaltic/sdk-php')
-            ? \Composer\InstalledVersions::getPrettyVersion('basaltic/sdk-php') : 'dev';
+            && \Composer\InstalledVersions::isInstalled('basaltic-sh/sdk-php')
+            ? \Composer\InstalledVersions::getPrettyVersion('basaltic-sh/sdk-php') : 'dev';
         return 'basaltic-php/' . ($version ?? 'dev') . ' PHP/' . PHP_VERSION;
     }
 }

@@ -1,5 +1,5 @@
 {
-    "name": "basaltic/sdk-php",
+    "name": "basaltic-sh/sdk-php",
     "description": "Official PHP SDK for the Basaltic cloud platform",
     "type": "library",
     "license": "Apache-2.0",
