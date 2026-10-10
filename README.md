@@ -15,7 +15,7 @@ privately to **security@basaltic.sh**, following [SECURITY.md](SECURITY.md).
 Install [basaltic-sh/sdk-php from Packagist](https://packagist.org/packages/basaltic-sh/sdk-php):
 
 ```bash
-composer require basaltic-sh/sdk-php:^0.1
+composer require basaltic-sh/sdk-php:^0.2
 ```
 
 Packagist distributes the source from this repository's versioned release tags.
