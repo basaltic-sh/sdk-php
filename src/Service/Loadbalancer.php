@@ -90,6 +90,22 @@ final class Loadbalancer extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'autoscaling' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'metrics' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'labels' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                     'floating_ips' => [
                         'type' => 'array',
                         'items' => [],
@@ -513,6 +529,22 @@ final class Loadbalancer extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'autoscaling' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'metrics' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'labels' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                     'tags' => [
                         'type' => 'object',
                     ],

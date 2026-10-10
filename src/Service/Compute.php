@@ -167,6 +167,22 @@ final class Compute extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'autoscaling' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'metrics' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'labels' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                     'tags' => [
                         'type' => 'object',
                     ],
@@ -201,6 +217,11 @@ final class Compute extends AbstractService
                                 'type' => 'array',
                                 'items' => [
                                     'type' => 'object',
+                                    'properties' => [
+                                        'performance' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
@@ -870,6 +891,22 @@ final class Compute extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'autoscaling' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'metrics' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'labels' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                     'tags' => [
                         'type' => 'object',
                     ],
@@ -904,6 +941,11 @@ final class Compute extends AbstractService
                                 'type' => 'array',
                                 'items' => [
                                     'type' => 'object',
+                                    'properties' => [
+                                        'performance' => [
+                                            'type' => 'object',
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],

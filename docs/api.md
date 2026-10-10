@@ -388,6 +388,7 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
+- `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
 - `description` (string): 
 - `tags` (object): Labels on the pool resource, for IAM conditions (`basalt:RequestTag/<key>` here, `basalt:ResourceTag/<key>` on later operations) and cost attribution. They are not propagated to the instances the pool launches; `template.tags` is that set. A pool field, sent beside `template`. Replica tags are only reachable through `template.tags`.
@@ -778,6 +779,7 @@ Path arguments, in order: `poolId`.
 
 Body fields:
 
+- `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `description` (string): Customer note on the pool. Omit to preserve it; send an empty string to clear it. Changes no instances, sizing or launch configuration.
 - `tags` (object): REPLACES the pool's labels: the map you send becomes the whole set, an empty object clears them, and omitting the field leaves them alone. Replacement rather than a merge because a merge leaves no way to say a key should be removed. These label the pool, not its instances. To change what future replicas are tagged with, send `template.tags`.
 - `desired_count` (integer): New target size, bounded by the resulting min_count/max_count and the hard platform cap of 100.
@@ -1902,12 +1904,16 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
+- `desired_count` (integer): Steady target within min_count and max_count.
+- `min_count` (integer): Lower capacity bound.
+- `max_count` (integer): Upper capacity bound including rollout surge.
+- `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `name` (string, required): 1..127 chars of [A-Za-z0-9._-] Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
 - `type` (string, required): 
 - `vpc` (string, required): VPC the LB will live in. Must match subnet's VPC.
 - `subnet` (string, required): Subnet the LB instances attach to. The virtual IP is allocated from this subnet.
 - `flavor` (string, required): Compute flavor for each LB instance.
-- `replica_count` (integer): Number of LB compute instances. Defaults to 1; pick >=2 for HA.
+- `replica_count` (integer): Deprecated input alias of desired_count; send only one. Desired defaults to 1. Omitted bounds default to desired.
 - `floating_ip` (string): Public IPv4 shorthand. Cannot be combined with floating_ips. Does not allocate public IPv6.
 - `floating_ips` (array): Existing free floating IPs from this account and region, at most one per family and visibility (private/public, IPv4/IPv6). Private addresses must belong to the selected subnet. Missing private families are allocated automatically for each family enabled on that subnet. Public addresses are optional and require a matching-family default route to an internet gateway; NAT and egress-only gateways do not qualify. IPv6 requires an IPv6-enabled subnet. Pool-owned or attached addresses are unavailable. On deletion, supplied addresses are detached and retained; automatic private allocations are released. Cannot be combined with floating_ip.
 - `security_groups` (array, required): Security groups attached to every replica NIC (AWS ALB shape). A VPC NIC with no security group denies all data traffic, so the listener port(s) must be opened by a security group listed here. Re-applied to replacement replicas. The LB's own control-plane path (agent config + heartbeat via the metadata endpoint) is always-allowed and needs none.
@@ -2158,8 +2164,12 @@ Path arguments, in order: `id`.
 
 Body fields:
 
-- `replica_count` (integer): Resize the set of load balancer instances. Scale-out provisions the new replicas in sequence; scale-in removes the highest-indexed replicas best-effort. 1..10.
-- `flavor` (string): Resize each replica to a different compute flavor. Must be a loadbalancer-family flavor. A running instance cannot change size in place, so the request records the new size and returns; the replicas already up are then replaced one at a time in the background. The load balancer temporarily runs one replica over replica_count while it does: the extra replica comes up on the new flavor and starts serving before any replica on the old one is retired, so the number serving never drops below replica_count — a resize does not cost you capacity, at any replica count. Expect it to take several minutes, and poll GET /v1/load-balancers/{id}/replicas to watch: a replica has been replaced when its instance_id changes, and the resize is done when every flavor there matches this one. The one exception is a load balancer already at the maximum of 10 replicas, which has nowhere to grow. There the replicas are replaced in place and 9 serve while each replacement boots. Rejected up front if the account does not have the compute quota for the replacement replica, so a resize cannot half-apply and leave the load balancer short.
+- `desired_count` (integer): Steady target within min_count and max_count.
+- `min_count` (integer): Lower capacity bound.
+- `max_count` (integer): Upper capacity bound including rollout surge.
+- `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
+- `replica_count` (integer): Deprecated alias of desired_count; send only one. Bounds are preserved. With desired_count omitted, it is clamped into the resulting bounds. Scale-in withdraws and drains members before deletion.
+- `flavor` (string): Resize each replica to a different compute flavor. Must be a loadbalancer-family flavor. A running instance cannot change size in place, so the request records the new size and returns; the replicas already up are then replaced one at a time in the background. The load balancer temporarily runs one replica over desired_count, within max_count while it does: the extra replica comes up on the new flavor and starts serving before any replica on the old one is retired, so the number serving never drops below desired_count — a resize does not cost you capacity, at any replica count. Expect it to take several minutes, and poll GET /v1/load-balancers/{id}/replicas to watch: a replica has been replaced when its instance_id changes, and the resize is done when every flavor there matches this one. A resize requires max_count above desired_count for surge headroom. A rollout waits if headroom is removed while it is in progress. Rejected up front if the account does not have the compute quota for the replacement replica, so a resize cannot half-apply and leave the load balancer short.
 - `tags` (object): 
 
 ### `loadbalancer()->updateRule()`
