@@ -132,7 +132,7 @@ List catalog prices
 Query fields:
 
 - `service` (string): Only SKUs billed by this service.
-- `resource_type` (string): 
+- `resource_type` (string):
 - `sku` (string): Exactly one SKU.
 - `family` (string): Only SKUs whose `metadata.family` matches — how the managed products are separated from the general compute flavors.
 - `at` (string): Read the catalog as of this instant instead of now, for showing a historical price. RFC3339.
@@ -157,26 +157,27 @@ Save organization billing details
 
 Body fields:
 
-- `customer_type` (string): 
-- `company_name` (string): Full legal name of the individual or company.
-- `country` (string): ISO 3166-1 alpha-2 country code.
-- `tax_id` (string): CPF for a Brazilian individual or CNPJ for a Brazilian company. Check digits are validated.
-- `foreign_tax_id` (string): Foreign identifier; not validated as a Brazilian document.
-- `no_tax_id_reason` (string): Required for a foreign recipient without a tax identifier.
-- `email` (string): Billing email for fiscal invoice delivery. The onboarding form prefills this from the signed-in user's email.
-- `phone` (string): 
-- `street_name` (string): 
-- `street_number` (string): 
-- `complement` (string): 
-- `neighborhood` (string): 
-- `city` (string): 
-- `municipality_code` (string): Seven-digit IBGE municipality code, required for a Brazilian recipient.
-- `state` (string): Two-letter UF for Brazil; free-form state/province abroad.
-- `postal_code` (string): Eight-digit CEP for Brazil; optional international postal code abroad.
-- `ready` (boolean): 
-- `missing_fields` (array): 
+- `customer_type` (string):
+- `company_name` (string):
+- `tax_id` (string): Separators and case are ignored; the identifier is checked against the country's rules, including check digits where one is named.
+- `tax_id_kind` (string): Needed only when a customer type accepts more than one kind; otherwise the matching kind is chosen.
+- `no_tax_id_reason` (string):
+- `email` (string):
+- `phone` (string): Phone with its country calling code. Spaces, dots, dashes and parentheses are ignored; stored as E.164.
+- `country` (string): Country UUID, CRN, or ISO alpha-2 or alpha-3 code. Defaults to Brazil.
+- `state` (string): State UUID, CRN, or code, where the country lists states. Omit when a city is given; the city implies it.
+- `city` (string): City UUID or CRN, where the country lists cities.
+- `address` (object): Address values keyed by the field keys the country's rules declare. A key the country does not use is rejected. `state` and `city` appear here only where the country types them as text.
 
 ## Catalog
+
+### `catalog()->getCountry()`
+
+Get a country and its address rules
+
+`GET /v1/countries/{country}` → `Result`
+
+Path arguments, in order: `country`.
 
 `getRegionByReference(...)` resolves an ID, CRN, or scoped name.
 
@@ -188,6 +189,25 @@ Get a region
 
 Path arguments, in order: `code`.
 
+### `catalog()->listCities()`
+
+List cities
+
+`GET /v1/cities` → `Page`
+
+Query fields:
+
+- `state` (string): State UUID or CRN, or its code together with `country`.
+- `country` (string): Country UUID, CRN, or ISO code. Required unless `state` is a UUID or CRN.
+- `q` (string): Name substring, compared without case or accents.
+- `limit` (integer):
+
+### `catalog()->listCountries()`
+
+List countries
+
+`GET /v1/countries` → `Page`
+
 ### `catalog()->listRegions()`
 
 List regions
@@ -198,6 +218,28 @@ Query fields:
 
 - `name` (string): Exact resource name, combined with crn using AND before pagination. Empty values are filters. Resources without a name never match.
 - `crn` (string): Exact returned CRN, combined with name using AND before pagination. Malformed or empty CRNs return 400; valid mismatched or foreign CRNs return an empty page. Resources without a CRN never match. Organization-scoped CRNs use the authenticated organization.
+
+### `catalog()->listStates()`
+
+List a country's states
+
+`GET /v1/states` → `Page`
+
+Query fields:
+
+- `country` (string, required): Country UUID, CRN, or ISO code.
+
+### `catalog()->lookupPostalCode()`
+
+Look up a postal code
+
+`GET /v1/postal-codes/{code}` → `Result`
+
+Path arguments, in order: `code`.
+
+Query fields:
+
+- `country` (string, required): Country UUID, CRN, or ISO code.
 
 ## Certificate
 
@@ -215,12 +257,12 @@ Body fields:
 
 - `name` (string, required): Unique per account. Surfaces in the CRN (`crn:certificate::<account>:certificate/<name>`), so it must be URL-safe — letters, digits, dot, dash, underscore. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
 - `domains` (array, required): Capped at 100 to stay inside the certificate authority's per-order limits.
-- `key_algorithm` (string): 
-- `source` (string): 
+- `key_algorithm` (string):
+- `source` (string):
 - `certificate_pem` (string): PEM-encoded leaf certificate. Required when source=uploaded.
 - `chain_pem` (string): PEM-encoded intermediate chain (optional when source=uploaded).
 - `private_key_pem` (string): PEM-encoded private key. Required when source=uploaded.
-- `tags` (object): 
+- `tags` (object):
 
 ### `certificate()->deleteCertificate()`
 
@@ -258,7 +300,7 @@ Query fields:
 
 - `name` (string): Exact, case-sensitive certificate name within the caller's account.
 - `crn` (string): Exact certificate CRN. Foreign accounts or mismatched service, type or region return an empty page; malformed syntax returns 400. Combined conjunctively with name before pagination.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last certificate id from the previous page.
 
 ### `certificate()->revokeCertificate()`
@@ -340,17 +382,17 @@ Body fields:
 
 - `name` (string, required): Immutable image name (e.g. debian-13) whose current-version pointer can move; the new image becomes its current version. Names are shared across a tag's builds — one build is identified by owner, name, architecture and version. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
 - `source_url` (string, required): Presigned https GET URL to the disk in an object store you control. Fetched once by the import worker (which rejects private/link-local targets). The worker detects qcow2, raw, vmdk, vhd, vhdx or vdi and converts it to raw storage. Unreadable or unsupported sources and images declaring backing files fail asynchronously with status error and an active conversion fault. Not retained after import.
-- `description` (string): 
+- `description` (string):
 - `os` (string): Operating system distribution. Use linux for another or generic Linux distribution; os_version specifies the release separately.
-- `os_version` (string): 
+- `os_version` (string):
 - `architecture` (string): CPU architecture of the source image. Only amd64 (x86-64) is supported.
 - `version` (string): Identifies this build within `name`, and must be unique there — re-publishing a version that a tag already carries is a 409. Omit it and the server stamps a UTC timestamp, so every build is addressable as `name:version` whether or not you labelled it.
 - `current` (boolean): Make this the current version for its (name, architecture) once active.
 - `eol_date` (string): The day this release stops receiving free security updates. Omit it and the image inherits the date the name's current version carries, so re-publishing a tag can't quietly stop tracking its release.
-- `min_disk_gb` (integer): 
-- `min_ram_mb` (integer): 
-- `tags` (object): 
-- `attributes` (object): 
+- `min_disk_gb` (integer):
+- `min_ram_mb` (integer):
+- `tags` (object):
+- `attributes` (object):
 
 ### `compute()->createInstance()`
 
@@ -365,14 +407,14 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `flavor` (string, required): Regional flavor reference (UUID, CRN or exact name)
 - `architecture` (string): Architecture for image names and name:version tags (default amd64); a CRN pins its own architecture and version.
 - `image` (string): Image to clone the boot disk from. Required unless volumes contains an existing boot volume; cannot be combined with an existing boot volume. Four forms are accepted: a complete image/name/architecture/arch/version/version CRN; an image id; `name:version`, which pins one build and is how you opt out of the tag moving under you; or a bare `name`, which follows the tag to whichever build is current when the instance is created. Names prefer a usable caller-owned build over a tagged platform catalog build for the requested architecture (default amd64). A CRN pins owner, name, architecture and version. Resolution never retries another reference kind; responses and stored templates retain the resolved image UUID.
 - `networks` (array, required): Interfaces to attach, at least one. index 0 is the primary NIC. Required because an instance with no interface boots with no network at all, and nothing inside it can add one afterwards.
 - `volumes` (array): New or existing disks bound with the instance, the boot disk included — mark it with `boot: true`. At most one entry may. Omit the boot entry to take the image's minimum size and the region's default tier.
-- `metadata` (object): 
-- `tags` (object): 
+- `metadata` (object):
+- `tags` (object):
 - `user_data` (string): Base64-encoded user data (cloud-init)
 - `iam_role` (string): Attach an IAM role from the same account by UUID, CRN or exact name. The role's trust policy must permit `crn:compute:*:*:instance/*` (or the specific instance CRN). The instance's IMDS endpoint (169.254.169.254) mints short-lived STS credentials for this role from inside the VM.
 
@@ -390,11 +432,11 @@ Body fields:
 
 - `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `tags` (object): Labels on the pool resource, for IAM conditions (`basalt:RequestTag/<key>` here, `basalt:ResourceTag/<key>` on later operations) and cost attribution. They are not propagated to the instances the pool launches; `template.tags` is that set. A pool field, sent beside `template`. Replica tags are only reachable through `template.tags`.
 - `template` (object, required): The pool's launch config, in the shape a standalone instance create takes: same field names, same types, same meanings, so a client that can build an instance can build a pool of them without a second, narrower contract to learn. It belongs to the pool. There is no separate launch-template resource to create, version or share between pools. Networking is one ordered `networks` list, index 0 being the primary NIC. `ip_address` and `mac` are part of that shared NIC shape but are refused here: every replica launches from this one template, so a fixed address would have the second replica ask for one the first already holds.
-- `desired_count` (integer): 
-- `min_count` (integer): 
+- `desired_count` (integer):
+- `min_count` (integer):
 - `max_count` (integer): A value of 0 means the pool holds no members until max_count is raised.
 
 ### `compute()->createSerialConsoleTicket()`
@@ -536,8 +578,8 @@ Query fields:
 - `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
 - `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
 - `name` (string): Exact image name.
-- `os` (string): 
-- `architecture` (string): 
+- `os` (string):
+- `architecture` (string):
 
 ### `compute()->listImages()`
 
@@ -550,10 +592,10 @@ Query fields:
 - `crn` (string): Exact resource CRN, intersected with all other filters before pagination. A foreign or mismatched CRN returns an empty page; malformed or empty CRNs return 400. Nested attachment lists filter the represented resource, not the binding.
 - `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
 - `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
-- `os` (string): 
-- `architecture` (string): 
+- `os` (string):
+- `architecture` (string):
 - `name` (string): Exact, case-sensitive name match; an empty value matches no named resource.
-- `status` (string): 
+- `status` (string):
 - `all_versions` (boolean): Include builds a newer version has superseded. Off by default, when each tag contributes only the build worth launching.
 
 ### `compute()->listInstanceNICs()`
@@ -581,7 +623,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `compute()->listInstancePools()`
@@ -748,11 +790,11 @@ Path arguments, in order: `imageId`.
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 - `current` (boolean): Switch the resolve-by-name pointer for this image's name. true promotes this version to current (the switch / rollback action) and demotes whatever else was current for the same (name, architecture); false clears the pointer. Only active images can be made current.
 - `eol_date` (string): Set the release's end-of-life date. An explicit null clears it; omitting the field leaves it unchanged. Clearing matters because the catalog withdraws platform images on this date — one recorded by mistake has to be removable.
-- `tags` (object): 
-- `attributes` (object): 
+- `tags` (object):
+- `attributes` (object):
 
 ### `compute()->updateInstance()`
 
@@ -765,9 +807,9 @@ Path arguments, in order: `instanceId`.
 Body fields:
 
 - `iam_role` (string): Attach or replace the instance workload role using its ID, name, or CRN. Omit this field to keep the current role; send an empty string to detach it. Null is not accepted. Requires compute:UpdateInstance; attach/replace also require iam:PassRole and a role trust policy allowing this instance. Only running or stopped customer-managed instances with no operation in progress support role edits. Pool members use the pool launch template. New IMDS requests observe the committed association immediately. Previously issued credentials are not revoked and remain valid until expiry (up to one hour); in-flight requests may complete with their prior association.
-- `description` (string): 
-- `metadata` (object): 
-- `tags` (object): 
+- `description` (string):
+- `metadata` (object):
+- `tags` (object):
 
 ### `compute()->updateInstancePool()`
 
@@ -797,7 +839,7 @@ Path arguments, in order: `instanceId`, `volumeId`.
 
 Body fields:
 
-- `delete_on_termination` (boolean, required): 
+- `delete_on_termination` (boolean, required):
 
 ## Dns
 
@@ -833,8 +875,8 @@ Body fields:
 
 - `name` (string, required): Record name (FQDN).
 - `type` (string, required): Curated subset of supported DNS record types. SOA and DNSSEC-managed types (DNSKEY, DS, NSEC*, RRSIG, …) are managed by the platform and not creatable through the API. Every type here has a wire representation. ALIAS is not offered: it resolves only if the authoritative server flattens it to A/AAAA, and ours does not. Point a zone apex at a target with A/AAAA records carrying its addresses.
-- `ttl` (integer): 
-- `values` (array, required): 
+- `ttl` (integer):
+- `values` (array, required):
 
 ### `dns()->createZone()`
 
@@ -854,7 +896,7 @@ Body fields:
 - `dnssec` (boolean): Sign the zone with DNSSEC. On unless you say otherwise, and almost every zone should leave it on. **Turn it off only if this domain is served by another DNS provider at the same time as us.** A signed zone puts our DS record at the parent, and that DS covers only the answers WE sign — so a validating resolver that happens to ask the other provider gets a signature it cannot verify and fails the lookup. Roughly half your queries, unpredictably, which is worse than either provider on its own. Unsigned is the only configuration that works for that setup today. Fixed at creation. Turning signing off later breaks the domain until the DS is withdrawn at the registrar and that withdrawal has propagated, which is a sequence this API cannot drive for you.
 - `import_existing_records` (boolean): Read the domain's records from the nameservers that serve it TODAY and copy them into this zone, before you move the delegation here. Worth asking for when you are migrating a live domain. The delegation is the ownership proof, so the moment you point your registrar at this zone is the moment we start answering for it — and an empty zone answers with nothing, which takes the site and the mail down until you have retyped everything. Runs in the background; the zone is created immediately. Poll GET /v1/zones/{zone_id}/record-import for the outcome. Best effort, and the result says how good it was. A zone transfer is exhaustive and almost always refused; the fallback queries a list of common names and cannot find a record it did not think to ask for. Check `record_import.complete` before you switch your old provider off. Records you have already created are never overwritten, and records this platform manages itself — the SOA, the DNSSEC chain, the zone's nameservers — are never imported.
 - `vpcs` (array): Account-owned VPC UUIDs or network/vpc CRNs the zone resolves in. Bare names are rejected with 400 because the request fixes no region. CRNs resolve in their named region; UUIDs search all regions enabled for DNS. Missing, foreign-account or unconfigured-region VPCs return 404. Incomplete UUID searches or duplicate regional UUID identities fail with a server error. References are deduplicated by UUID. Required when visibility=private, rejected when visibility=public. More can be associated later via POST /v1/zones/{zone_id}/vpc-associations.
-- `tags` (object): 
+- `tags` (object):
 
 ### `dns()->deleteRecord()`
 
@@ -954,7 +996,7 @@ Query fields:
 - `name` (string): Exact record name, lowercased with an optional trailing dot removed.
 - `crn` (string): Exact nested record CRN. Foreign or mismatched CRNs return an empty page; combined with name before pagination.
 - `include_managed` (boolean): Include the platform-stamped rows (SOA, apex NS, and the DNSSEC set) alongside your own. Off by default — they cannot be edited or deleted, and on a signed zone there are more of them than there are of yours.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last record id from the previous page.
 
 ### `dns()->listZoneVPCAssociations()`
@@ -980,7 +1022,7 @@ Query fields:
 
 - `name` (string): Exact zone name, lowercased. Combined conjunctively with crn before pagination.
 - `crn` (string): Exact dns/zone CRN with empty region and the caller's account. Malformed CRNs return 400; valid foreign or mismatched CRNs return an empty page.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last zone id from the previous page.
 
 ### `dns()->updateRecord()`
@@ -993,8 +1035,8 @@ Path arguments, in order: `zoneId`, `recordId`.
 
 Body fields:
 
-- `ttl` (integer): 
-- `values` (array): 
+- `ttl` (integer):
+- `values` (array):
 
 ### `dns()->updateZone()`
 
@@ -1007,7 +1049,7 @@ Path arguments, in order: `zoneId`.
 Body fields:
 
 - `description` (string): Omit to preserve the description; send an empty string to clear it.
-- `tags` (object): 
+- `tags` (object):
 
 ### `dns()->verifyZoneOwnership()`
 
@@ -1104,7 +1146,7 @@ Add personal SSH key
 
 Body fields:
 
-- `name` (string, required): 
+- `name` (string, required):
 - `public_key` (string, required): One OpenSSH public key. Ed25519, ECDSA, security-key variants, and RSA of at least 2048 bits are supported. Private keys, certificates, multiple keys and authorized_keys options are rejected.
 - `expires_at` (string): Optional expiry at least one minute in the future. Rotation requires a new credential and revocation of the old one.
 
@@ -1121,8 +1163,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `document` (object, required): IAM-style policy document
 
 ### `iam()->createRole()`
@@ -1138,8 +1180,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `trust_policy` (object): Defines who/what can assume this role using CRN patterns
 
 ### `iam()->createServiceAccount()`
@@ -1155,8 +1197,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Immutable account-scoped name. The Linux login is sa_<name>. Resource names must not start with the literal crn: prefix or be UUIDs.
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `iam()->createServiceAccountCredential()`
 
@@ -1168,7 +1210,7 @@ Path arguments, in order: `serviceAccountId`.
 
 Body fields:
 
-- `name` (string, required): 
+- `name` (string, required):
 - `expires_at` (string): Optional expiration date
 
 ### `iam()->createServiceAccountSSHKey()`
@@ -1181,7 +1223,7 @@ Path arguments, in order: `serviceAccountId`.
 
 Body fields:
 
-- `name` (string, required): 
+- `name` (string, required):
 - `public_key` (string, required): One OpenSSH public key. Ed25519, ECDSA, security-key variants, and RSA of at least 2048 bits are supported. Private keys, certificates, multiple keys and authorized_keys options are rejected.
 - `expires_at` (string): Optional expiry at least one minute in the future. Rotation requires a new credential and revocation of the old one.
 
@@ -1645,8 +1687,8 @@ Path arguments, in order: `policyId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `document` (object): IAM-style policy document
 
 ### `iam()->updateRole()`
@@ -1659,8 +1701,8 @@ Path arguments, in order: `roleId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `trust_policy` (object): Defines who/what can assume this role using CRN patterns
 
 ### `iam()->updateServiceAccount()`
@@ -1673,9 +1715,9 @@ Path arguments, in order: `serviceAccountId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
-- `enabled` (boolean): 
+- `description` (string):
+- `tags` (object):
+- `enabled` (boolean):
 
 ## Kms
 
@@ -1700,8 +1742,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Unique per account. Surfaces in the CRN (crn:kms:<region>:<account>:key/<name>) — letters, digits, dot, dash, underscore. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `key_spec` (string, required): Cryptographic spec. Determines which mechanisms apply: - aes-256: symmetric AEAD (AES-GCM) - rsa-2048: asymmetric; OAEP-SHA256 encrypt + PSS-SHA256 sign - rsa-4096: same as rsa-2048 - ecdsa-p256: asymmetric; SHA-256 sign/verify (no encrypt)
 - `key_usage` (string): Required for RSA specs (both encrypt_decrypt and sign_verify are valid). Defaults to encrypt_decrypt for AES, sign_verify for ECDSA.
 
@@ -1757,7 +1799,7 @@ Path arguments, in order: `keyId`.
 
 Body fields:
 
-- `number_of_bytes` (integer): Size of the generated data key in bytes: 16 (AES-128), 32 (AES-256, the default) or 64 (HMAC-SHA512). No other size is supported — the HSM mints data keys at those three widths only, and any other value fails the operation.
+- `number_of_bytes` (integer): Size of the generated data key in bytes: 16 (AES-128), 32 (AES-256, the default) or 64 (HMAC-SHA512). No other size is supported; any other value fails the operation.
 
 `getKeyByReference(...)` resolves an ID, CRN, or scoped name.
 
@@ -1769,6 +1811,47 @@ Get a KMS key
 
 Path arguments, in order: `keyId`.
 
+### `kms()->getKeyRotation()`
+
+Get a key rotation
+
+`GET /v1/keys/{key_id}/rotations/{rotation_id}` → `Result`
+
+Path arguments, in order: `keyId`, `rotationId`.
+
+### `kms()->getKeyRotationStatus()`
+
+Get key rotation status
+
+`GET /v1/keys/{key_id}/rotation` → `Result`
+
+Path arguments, in order: `keyId`.
+
+### `kms()->getPublicKey()`
+
+Get a versioned public key
+
+`GET /v1/keys/{key_id}/public-key` → `Result`
+
+Path arguments, in order: `keyId`.
+
+Query fields:
+
+- `key_version` (integer): Material version to export. Defaults to the current version.
+
+### `kms()->listKeyRotations()`
+
+List key rotation history
+
+`GET /v1/keys/{key_id}/rotations` → `Page`
+
+Path arguments, in order: `keyId`.
+
+Query fields:
+
+- `limit` (integer):
+- `marker` (string):
+
 ### `kms()->listKeys()`
 
 List KMS keys
@@ -1777,11 +1860,35 @@ List KMS keys
 
 Query fields:
 
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last key id from the previous page.
 - `state` (string): Optional state filter (enabled / disabled / pending_deletion).
 - `name` (string): Exact, case-sensitive account-scoped key name. Combined with other filters.
 - `crn` (string): Exact KMS key CRN in the authenticated account and current region. Malformed or empty CRNs return 400; valid foreign or mismatched CRNs return an empty page. Combined with name and state filters.
+
+### `kms()->rewrap()`
+
+Rewrap ciphertext with current key material
+
+`POST /v1/keys/{key_id}/rewrap` → `Result`
+
+Path arguments, in order: `keyId`.
+
+Body fields:
+
+- `ciphertext` (string, required): Base64-encoded ciphertext or wrapped data key produced by this KMS key. AAD is neither required nor changed.
+
+### `kms()->rotateKeyOnDemand()`
+
+Rotate key material now
+
+`POST /v1/keys/{key_id}/rotate` → `Result`
+
+Path arguments, in order: `keyId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Durable per-key request token; reuse it for retries of the same rotation.
 
 ### `kms()->scheduleKeyDeletion()`
 
@@ -1794,6 +1901,19 @@ Path arguments, in order: `keyId`.
 Body fields:
 
 - `recovery_window_days` (integer): How long the key sits in pending_deletion before it is hard-deleted. Matches AWS KMS bounds; the deletion can be cancelled at any point inside the window.
+
+### `kms()->setKeyRotation()`
+
+Configure automatic key rotation
+
+`PUT /v1/keys/{key_id}/rotation` → `Result`
+
+Path arguments, in order: `keyId`.
+
+Body fields:
+
+- `enabled` (boolean, required):
+- `rotation_period_days` (integer): Whole days between rotations. Omission selects 365 days.
 
 ### `kms()->sign()`
 
@@ -1818,8 +1938,8 @@ Path arguments, in order: `keyId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `kms()->verify()`
 
@@ -1831,6 +1951,7 @@ Path arguments, in order: `keyId`.
 
 Body fields:
 
+- `key_version` (integer): Optional material version returned by Sign. When omitted, all retained public-key versions are tried for compatibility with older signatures.
 - `message` (string, required): Base64-encoded original message.
 - `signature` (string, required): Base64-encoded signature produced by Sign.
 - `signing_algorithm` (string): Signing algorithm for asymmetric Sign / Verify. Optional in requests — when omitted, the service picks the default for the key spec (RSA → RSASSA_PSS_SHA_256, ECDSA → ECDSA_SHA_256). Must match the key spec: RSA keys accept the two RSASSA schemes, ECDSA keys accept ECDSA_SHA_256.
@@ -1869,7 +1990,7 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `target` (string, required): Must match the group's target_type: an IP address for `ip`, a compute instance UUID, CRN or exact account-scoped name for `instance`. An `ip` ref has to be a routable unicast address — loopback, link-local (including the 169.254.169.254 metadata endpoint), multicast, and unspecified addresses are rejected.
-- `port` (integer): 
+- `port` (integer):
 
 ### `loadbalancer()->createListener()`
 
@@ -1885,12 +2006,12 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `protocol` (string, required): 
-- `port` (integer, required): 
-- `certificates` (array): 
-- `default_target_group` (string): 
+- `protocol` (string, required):
+- `port` (integer, required):
+- `certificates` (array):
+- `default_target_group` (string):
 - `exposure` (string): Which LB addresses are bound. Defaults to 'both'; pick private_only when the LB has no FIP yet.
-- `tags` (object): 
+- `tags` (object):
 
 ### `loadbalancer()->createLoadBalancer()`
 
@@ -1909,7 +2030,7 @@ Body fields:
 - `max_count` (integer): Upper capacity bound including rollout surge.
 - `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `name` (string, required): 1..127 chars of [A-Za-z0-9._-] Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `type` (string, required): 
+- `type` (string, required):
 - `vpc` (string, required): VPC the LB will live in. Must match subnet's VPC.
 - `subnet` (string, required): Subnet the LB instances attach to. The virtual IP is allocated from this subnet.
 - `flavor` (string, required): Compute flavor for each LB instance.
@@ -1917,7 +2038,7 @@ Body fields:
 - `floating_ip` (string): Public IPv4 shorthand. Cannot be combined with floating_ips. Does not allocate public IPv6.
 - `floating_ips` (array): Existing free floating IPs from this account and region, at most one per family and visibility (private/public, IPv4/IPv6). Private addresses must belong to the selected subnet. Missing private families are allocated automatically for each family enabled on that subnet. Public addresses are optional and require a matching-family default route to an internet gateway; NAT and egress-only gateways do not qualify. IPv6 requires an IPv6-enabled subnet. Pool-owned or attached addresses are unavailable. On deletion, supplied addresses are detached and retained; automatic private allocations are released. Cannot be combined with floating_ip.
 - `security_groups` (array, required): Security groups attached to every replica NIC (AWS ALB shape). A VPC NIC with no security group denies all data traffic, so the listener port(s) must be opened by a security group listed here. Re-applied to replacement replicas. The LB's own control-plane path (agent config + heartbeat via the metadata endpoint) is always-allowed and needs none.
-- `tags` (object): 
+- `tags` (object):
 
 ### `loadbalancer()->createRule()`
 
@@ -1933,9 +2054,9 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `priority` (integer, required): 
-- `conditions` (array, required): 
-- `target_group` (string, required): 
+- `priority` (integer, required):
+- `conditions` (array, required):
+- `target_group` (string, required):
 
 ### `loadbalancer()->createTargetGroup()`
 
@@ -1950,15 +2071,15 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `protocol` (string, required): 
-- `target_type` (string): 
-- `port` (integer, required): 
+- `protocol` (string, required):
+- `target_type` (string):
+- `port` (integer, required):
 - `health_check` (object): Active probes are enabled by default. Set enabled=false to stop probes while retaining their configuration. An explicitly enabled HTTP/HTTPS check requires a non-empty path starting with /. TCP checks connect to the check port without an HTTP path. UDP groups default to TCP connect probes.
-- `proxy_protocol` (boolean): 
+- `proxy_protocol` (boolean):
 - `session_affinity` (object): Sticky sessions: pin a client to one backend in the group instead of balancing each request independently. Off unless you ask for it. The data plane hashes the key consistently, so adding or losing a backend only moves the clients that backend was serving.
 - `target_mode` (string): `static` (the default) takes the backends you attach as targets. `pool` takes them from a compute instance pool and requires instance_pool; the group is forced to target_type=instance, and attaching targets to it is rejected.
 - `instance_pool` (string): Compute instance pool to draw backends from. Required when target_mode=pool and must belong to the calling account; ignored otherwise.
-- `tags` (object): 
+- `tags` (object):
 
 ### `loadbalancer()->deleteListener()`
 
@@ -2094,7 +2215,7 @@ Query fields:
 
 - `name` (string): Exact immutable name. An empty value or a resource without a name selects no rows.
 - `crn` (string): Exact scoped CRN. Foreign or mismatched CRNs select no rows; malformed or empty CRNs return 400.
-- `status` (string): 
+- `status` (string):
 - `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
 - `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
 
@@ -2121,7 +2242,7 @@ Query fields:
 
 - `name` (string): Exact immutable name. An empty value or a resource without a name selects no rows.
 - `crn` (string): Exact scoped CRN. Foreign or mismatched CRNs select no rows; malformed or empty CRNs return 400.
-- `protocol` (string): 
+- `protocol` (string):
 - `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
 - `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
 
@@ -2148,11 +2269,11 @@ Path arguments, in order: `id`, `listenerId`.
 
 Body fields:
 
-- `certificate` (string): 
-- `default_target_group` (string): 
-- `clear_default_target_group` (boolean): 
+- `certificate` (string):
+- `default_target_group` (string):
+- `clear_default_target_group` (boolean):
 - `exposure` (string): Mutate which addresses are bound. Omit to leave unchanged.
-- `tags` (object): 
+- `tags` (object):
 
 ### `loadbalancer()->updateLoadBalancer()`
 
@@ -2170,7 +2291,7 @@ Body fields:
 - `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `replica_count` (integer): Deprecated alias of desired_count; send only one. Bounds are preserved. With desired_count omitted, it is clamped into the resulting bounds. Scale-in withdraws and drains members before deletion.
 - `flavor` (string): Resize each replica to a different compute flavor. Must be a loadbalancer-family flavor. A running instance cannot change size in place, so the request records the new size and returns; the replicas already up are then replaced one at a time in the background. The load balancer temporarily runs one replica over desired_count, within max_count while it does: the extra replica comes up on the new flavor and starts serving before any replica on the old one is retired, so the number serving never drops below desired_count — a resize does not cost you capacity, at any replica count. Expect it to take several minutes, and poll GET /v1/load-balancers/{id}/replicas to watch: a replica has been replaced when its instance_id changes, and the resize is done when every flavor there matches this one. A resize requires max_count above desired_count for surge headroom. A rollout waits if headroom is removed while it is in progress. Rejected up front if the account does not have the compute quota for the replacement replica, so a resize cannot half-apply and leave the load balancer short.
-- `tags` (object): 
+- `tags` (object):
 
 ### `loadbalancer()->updateRule()`
 
@@ -2182,9 +2303,9 @@ Path arguments, in order: `id`, `listenerId`, `ruleId`.
 
 Body fields:
 
-- `priority` (integer, required): 
-- `conditions` (array, required): 
-- `target_group` (string, required): 
+- `priority` (integer, required):
+- `conditions` (array, required):
+- `target_group` (string, required):
 
 ### `loadbalancer()->updateTargetGroup()`
 
@@ -2199,7 +2320,7 @@ Body fields:
 - `health_check` (object): Merge supplied fields into the existing check. Omitted fields are preserved; null or an empty object leaves the check unchanged. Set enabled=false to disable probes without clearing settings, and enabled=true to enable the saved configuration. Set port=0 to use each target's traffic port; zero timing/thresholds and an empty matcher reset their defaults. An empty protocol inherits the target group protocol. Clearing the path of an explicitly enabled HTTP/HTTPS check is invalid.
 - `proxy_protocol` (boolean): Toggle PROXY v2 framing on upstream connections. Omitting the field leaves the current setting; setting true/false flips it explicitly.
 - `session_affinity` (object): Replaces the stickiness config. Omitting the field leaves it alone; turning it off is an explicit `{"type": "none"}`.
-- `tags` (object): 
+- `tags` (object):
 
 ## Network
 
@@ -2218,7 +2339,7 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `interface` (string, required): Interface UUID or nested CRN. Bare names have no subnet scope and are rejected.
-- `address_id` (string, required): 
+- `address_id` (string, required):
 
 ### `network()->attachInternetGateway()`
 
@@ -2249,9 +2370,9 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `vpc` (string, required): VPC UUID, CRN or exact name in the caller account.
-- `tags` (object): 
+- `tags` (object):
 
 ### `network()->createFloatingIp()`
 
@@ -2265,11 +2386,11 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 - `family` (string): Which family to allocate in. Fixed for the life of the address — it decides the pool the address comes from, the quota it counts against (`floating_ips_v4` or `floating_ips_v6`) and the SKU it bills as. Omitted means `ipv4`.
-- `tags` (object): 
+- `tags` (object):
 - `health_check` (object): An optional readiness check for the address's members. Omitted means none — the address behaves exactly as an ordinary floating IP.
-- `visibility` (string): 
+- `visibility` (string):
 - `subnet` (string): Required for private floating IPs; subnet UUID or CRN in this account. Targets may be in other subnets of the same VPC.
 
 ### `network()->createInterface()`
@@ -2286,9 +2407,9 @@ Body fields:
 
 - `subnet` (string, required): Subnet UUID or nested CRN (vpc/<vpc>/subnet/<subnet>). A bare name requires an explicit VPC filter; create requests without a VPC do not accept bare names.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `mac` (string): Defaults to a fresh locally-administered EUI-48
-- `tags` (object): 
+- `tags` (object):
 - `addresses` (array): Every enabled subnet family is allocated automatically. Entries may request a fixed IPv4 address; omitting a family never disables it. At most one entry per family.
 
 ### `network()->createInterfaceAddress()`
@@ -2301,7 +2422,7 @@ Path arguments, in order: `interfaceId`.
 
 Body fields:
 
-- `family` (string, required): 
+- `family` (string, required):
 - `address` (string): Optional fixed address when creating an interface or instance NIC. For IPv6, use the first address of an aligned /96 inside the subnet /64 (last 32 bits zero); the first and last /96 ranges are reserved. Omit for automatic allocation. Managed database nodes and the add-address operation require automatic allocation.
 
 ### `network()->createInterfacePrefix()`
@@ -2314,7 +2435,7 @@ Path arguments, in order: `interfaceId`.
 
 Body fields:
 
-- `pool_id` (string, required): 
+- `pool_id` (string, required):
 
 ### `network()->createInternetGateway()`
 
@@ -2329,8 +2450,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->createNATGateway()`
 
@@ -2345,9 +2466,9 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `subnet` (string, required): Subnet UUID or nested CRN (vpc/<vpc>/subnet/<subnet>). A bare name requires an explicit VPC filter; create requests without a VPC do not accept bare names.
-- `tags` (object): 
+- `tags` (object):
 
 ### `network()->createPrefixPool()`
 
@@ -2359,7 +2480,7 @@ Path arguments, in order: `vpcId`.
 
 Body fields:
 
-- `cidr_ipv4` (string, required): 
+- `cidr_ipv4` (string, required):
 
 ### `network()->createRoute()`
 
@@ -2375,13 +2496,13 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `description` (string): 
-- `destination_cidr` (string, required): 
+- `description` (string):
+- `destination_cidr` (string, required):
 - `next_hop_ip` (string): Unicast next hop inside this VPC's CIDR (same IP family as destination_cidr). Not for internet egress — use a gateway target id instead.
 - `target_internet_gateway` (string): Gateway UUID, CRN or exact account-scoped name. Must belong to the route table VPC and match the destination_cidr address family. Exactly one route target is required.
 - `target_nat_gateway` (string): Gateway UUID, CRN or exact account-scoped name. Must belong to the route table VPC and match the destination_cidr address family. Exactly one route target is required.
 - `target_egress_only_gateway` (string): Gateway UUID, CRN or exact account-scoped name. Must belong to the route table VPC and match the destination_cidr address family. Exactly one route target is required.
-- `tags` (object): 
+- `tags` (object):
 
 ### `network()->createRouteTable()`
 
@@ -2397,8 +2518,8 @@ Body fields:
 
 - `vpc` (string, required): VPC UUID, CRN or exact name in the caller account.
 - `name` (string, required): 1-63 chars, lowercase alphanumeric + hyphen. `main` is reserved. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->createSecurityGroup()`
 
@@ -2413,8 +2534,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->createSecurityGroupRule()`
 
@@ -2430,13 +2551,13 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `description` (string): 
-- `direction` (string, required): 
-- `ethertype` (string): 
-- `protocol` (string, required): 
-- `port_min` (integer): 
-- `port_max` (integer): 
-- `remote_cidr` (string): 
+- `description` (string):
+- `direction` (string, required):
+- `ethertype` (string):
+- `protocol` (string, required):
+- `port_min` (integer):
+- `port_max` (integer):
+- `remote_cidr` (string):
 - `source_security_group` (string): Security-group UUID, CRN or exact account-scoped name. Mutually exclusive with remote_cidr.
 
 ### `network()->createSubnet()`
@@ -2453,13 +2574,13 @@ Body fields:
 
 - `vpc` (string, required): VPC UUID, CRN or exact name in the caller account.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `cidr_ipv4` (string, required): 
+- `description` (string):
+- `cidr_ipv4` (string, required):
 - `gateway_ipv4` (string): Defaults to the first usable host in the CIDR
 - `route_table` (string): Route-table UUID, nested CRN or exact name within the subnet VPC. On PATCH the owned path subnet supplies the VPC. Omission on create selects the default table; an empty reference is invalid.
 - `allocate_cidr_ipv6` (boolean): Allocate a free /64 from the VPC IPv6 range. Can be enabled after creation. Every existing and new interface receives an IPv6 /96 and its first /128 automatically. NAT gateways hosted here also receive a public IPv6 address from the regional pool. Updating hosted gateways requires UpdateNATGateway permission and public IPv6 quota.
 - `cidr_ipv6` (string): An aligned /64 inside the VPC IPv6 range. Can be added later; cannot replace an existing range. Mutually exclusive with allocate_cidr_ipv6.
-- `tags` (object): 
+- `tags` (object):
 
 ### `network()->createVpc()`
 
@@ -2474,10 +2595,10 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `cidr_ipv4` (string, required): Must be private (RFC 1918): within 10.0.0.0/8, 172.16.0.0/12 or 192.168.0.0/16.
 - `allocate_cidr_ipv6` (boolean): Allocate a regional GUA /60. Mutually exclusive with cidr_ipv6. Existing IPv6 ranges cannot be replaced.
-- `tags` (object): 
+- `tags` (object):
 - `cidr_ipv6` (string): Optional aligned locally assigned ULA (fd00::/8), /48 through /60. May be added after VPC creation.
 
 ### `network()->deleteEgressOnlyGateway()`
@@ -2750,7 +2871,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listEgressOnlyGateways()`
@@ -2763,7 +2884,7 @@ Query fields:
 
 - `name` (string): Exact resource name.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listFloatingIps()`
@@ -2777,7 +2898,7 @@ Query fields:
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
 - `attached_to` (string): Exact attachment CRN: an interface for an ordinary binding, an instance pool (including a pool with zero members), or a load balancer. Applied before pagination and intersected with other filters. Malformed CRNs return 400; well-formed foreign or mismatched CRNs return an empty page.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listInterfaceAddresses()`
@@ -2821,7 +2942,7 @@ Query fields:
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
 - `subnet` (string): Subnet UUID or nested CRN; an exact bare name requires the vpc filter.
 - `vpc` (string): VPC UUID, CRN or exact account-scoped name. Resolved before subnet.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listInternetGatewayRoutes()`
@@ -2836,7 +2957,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listInternetGateways()`
@@ -2849,7 +2970,7 @@ Query fields:
 
 - `name` (string): Exact resource name.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listNATGatewayRoutes()`
@@ -2864,7 +2985,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listNATGateways()`
@@ -2879,7 +3000,7 @@ Query fields:
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
 - `subnet` (string): Subnet UUID or nested CRN; an exact bare name requires the vpc filter.
 - `vpc` (string): VPC UUID, CRN or exact account-scoped name. Resolved before subnet.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listPrefixPools()`
@@ -2901,7 +3022,7 @@ Query fields:
 - `name` (string): Exact resource name. Requires the vpc filter.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
 - `vpc` (string): VPC UUID, CRN or exact name in the caller account.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listRoutes()`
@@ -2916,7 +3037,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listSecurityGroupRules()`
@@ -2931,7 +3052,7 @@ Query fields:
 
 - `name` (string): Exact resource name. This resource has no name, so a supplied name returns an empty result.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listSecurityGroups()`
@@ -2944,7 +3065,7 @@ Query fields:
 
 - `name` (string): Exact resource name.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listSubnets()`
@@ -2958,7 +3079,7 @@ Query fields:
 - `name` (string): Exact resource name. Requires the vpc filter.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
 - `vpc` (string): VPC UUID, CRN or exact name in the caller account.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->listVpcs()`
@@ -2971,7 +3092,7 @@ Query fields:
 
 - `name` (string): Exact resource name.
 - `crn` (string): Exact CRN, validated against the endpoint type, region and caller account. Valid foreign or mismatched CRNs return an empty result; malformed or flat child CRNs return 400. Filters are conjunctive.
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last id from the previous page.
 
 ### `network()->setInterfaceSecurityGroups()`
@@ -2996,8 +3117,8 @@ Path arguments, in order: `egressOnlyGatewayId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateFloatingIp()`
 
@@ -3009,8 +3130,8 @@ Path arguments, in order: `floatingIpId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `health_check` (object): Set (an object) or clear (null) the address's readiness check. Omit the field to leave it unchanged.
 
 ### `network()->updateInterface()`
@@ -3023,8 +3144,8 @@ Path arguments, in order: `interfaceId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateInternetGateway()`
 
@@ -3036,8 +3157,8 @@ Path arguments, in order: `internetGatewayId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateNATGateway()`
 
@@ -3049,8 +3170,8 @@ Path arguments, in order: `natGatewayId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateRoute()`
 
@@ -3062,8 +3183,8 @@ Path arguments, in order: `routeTableId`, `routeId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateRouteTable()`
 
@@ -3075,8 +3196,8 @@ Path arguments, in order: `routeTableId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateSecurityGroup()`
 
@@ -3088,8 +3209,8 @@ Path arguments, in order: `securityGroupId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `network()->updateSubnet()`
 
@@ -3101,9 +3222,9 @@ Path arguments, in order: `subnetId`.
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 - `route_table` (string): Route-table UUID, nested CRN or exact name within the subnet VPC. On PATCH the owned path subnet supplies the VPC. Omission on create selects the default table; an empty reference is invalid.
-- `tags` (object): 
+- `tags` (object):
 - `allocate_cidr_ipv6` (boolean): Allocate a free /64 from the VPC IPv6 range. Can be enabled after creation. Every existing and new interface receives an IPv6 /96 and its first /128 automatically. NAT gateways hosted here also receive a public IPv6 address from the regional pool. Updating hosted gateways requires UpdateNATGateway permission and public IPv6 quota.
 - `cidr_ipv6` (string): An aligned /64 inside the VPC IPv6 range. Can be added later; cannot replace an existing range. Mutually exclusive with allocate_cidr_ipv6.
 - `copy_ipv4_security_rules` (boolean): When enabling IPv6, copy equivalent rules in security groups used by this subnet's interfaces. Copies 0.0.0.0/0 to ::/0 and security-group references, preserving protocol, ports and direction. Restricted IPv4 CIDRs are not widened. Existing IPv6 equivalents are not duplicated. Changes affect every interface sharing these groups. Requires CreateSecurityGroupRule permission and available rule quota. Only accepted with allocate_cidr_ipv6 or cidr_ipv6.
@@ -3119,8 +3240,8 @@ Path arguments, in order: `vpcId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `allocate_cidr_ipv6` (boolean): Allocate a regional GUA /60. Mutually exclusive with cidr_ipv6. Existing IPv6 ranges cannot be replaced.
 - `cidr_ipv6` (string): Optional aligned locally assigned ULA (fd00::/8), /48 through /60. May be added after VPC creation.
 
@@ -3151,10 +3272,10 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Unique within the calling account. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `value` (string, required): Base64 of the initial value bytes (1 byte - 64 KiB).
-- `recovery_window_days` (integer): 
+- `recovery_window_days` (integer):
 - `kms_key` (string): UUID, CRN or account-scoped name of a customer-managed KMS key to encrypt this secret under. Omit to use the platform-managed default key. The key must be enabled and have encrypt/decrypt usage.
 
 ### `secrets()->deleteSecret()`
@@ -3200,7 +3321,7 @@ Query fields:
 - `name` (string): Exact, case-sensitive secret name in the calling account. Empty values match nothing.
 - `crn` (string): Exact secret CRN in the calling account and current region. Malformed or empty CRNs return 400; valid foreign-account, foreign-region or wrong-type CRNs return an empty page. Combined filters intersect; conflicting name and CRN filters return an empty page. With include_deleted, a reused name can match both deleted and active secrets.
 - `include_deleted` (boolean): Include secrets in the recovery window.
-- `marker` (string): 
+- `marker` (string):
 - `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
 
 ### `secrets()->listVersions()`
@@ -3214,7 +3335,7 @@ Path arguments, in order: `secretId`.
 Query fields:
 
 - `crn` (string): Exact secret/name/version/number CRN; foreign or mismatched identities return an empty page.
-- `marker` (string): 
+- `marker` (string):
 - `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
 
 ### `secrets()->putSecretValue()`
@@ -3255,8 +3376,8 @@ Path arguments, in order: `secretId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ## Storage
 
@@ -3313,8 +3434,8 @@ Body fields:
 
 - `volume` (string, required): Account-owned volume UUID, CRN, or exact name.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `storage()->createSnapshotPolicy()`
 
@@ -3330,12 +3451,12 @@ Body fields:
 
 - `volume` (string, required): Account-owned volume UUID, CRN, or exact name.
 - `name` (string, required): Unique within the account — it names the policy in its CRN. Scheduled snapshots are named `<policy>-<UTC timestamp>`. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `interval_minutes` (integer, required): Minutes between snapshots — a minimum gap, not an exact cadence. A periodic pass takes whatever has come due and re-bases each policy's next run off the moment it ran, so a snapshot lands at or after `interval_minutes` and never before, and can land a minute or two later when the pass is busy. A window the pass misses costs one snapshot rather than producing a catch-up burst afterwards. The floor is one minute, because that pass is what evaluates the schedule and nothing finer can be honoured; the ceiling is 30 days. Sub-hourly intervals multiply snapshot churn and count against the `snapshots` quota, so pick the largest interval that meets your recovery point objective.
 - `retention_count` (integer, required): How many of this policy's snapshots to keep. When a fire takes the count past this, the oldest go first.
 - `retention_days` (integer): Optional age bound, applied on top of `retention_count`: a snapshot outside EITHER window is reaped. 0 means no age bound. The single newest snapshot is exempt from the age bound, so a volume that could not be snapshotted for longer than the window never loses its whole history.
 - `enabled` (boolean): Defaults to true. Set false to attach a paused schedule. Pausing stops the whole policy — no snapshots are taken and none are deleted, because a paused schedule that kept reaping would delete history while you were looking at it.
-- `tags` (object): 
+- `tags` (object):
 
 ### `storage()->createVolume()`
 
@@ -3351,14 +3472,14 @@ Body fields:
 
 - `performance` (object): Independently provision total sustained, combined read/write performance. Omitted dimensions retain their current value (included allowance on create). SSD permits up to 8000 IOPS and 250 MiB/s; NVMe up to 12000 and 500 MiB/s. The minimum is the volume's included allowance; higher grandfathered allowances remain available free of charge. Throughput is whole MiB/s, except an exact fractional legacy allowance may be selected to remove the paid add-on. Increases require account quota, regional capacity, and healthy storage. Applied extras bill by elapsed duration, including while detached or stopped.
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `volume_type` (string, required): The tiers a new volume may be provisioned on. `hdd` is a valid stored tier but its pool is reserved for cold storage, so creating a block volume on it is rejected.
-- `size_gb` (integer, required): 
+- `size_gb` (integer, required):
 - `architecture` (string): Architecture used for source_image name resolution. A full image CRN pins its own architecture.
 - `source_image` (string): Image UUID, name, name:version, or full CRN image/<name>/architecture/<arch>/version/<version>. Names resolve in the caller account first, then tagged platform catalog images, using architecture (default amd64). Mutually exclusive with source_snapshot. Image tags are not accepted.
 - `source_snapshot` (string): Clone from an available account-owned snapshot UUID or nested CRN volume/<volume-name>/snapshot/<snapshot-name>. Bare snapshot names are rejected because this request has no fixed source volume. Mutually exclusive with source_image; size_gb must be at least the snapshot's frozen size.
-- `bootable` (boolean): 
+- `bootable` (boolean):
 
 ### `storage()->deleteBucket()`
 
@@ -3592,10 +3713,10 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `key` (string, required): 
-- `content_type` (string): 
-- `storage_class` (string): 
-- `metadata` (object): 
+- `key` (string, required):
+- `content_type` (string):
+- `storage_class` (string):
+- `metadata` (object):
 
 ### `storage()->listBuckets()`
 
@@ -3605,7 +3726,7 @@ List buckets
 
 Query fields:
 
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last bucket name from the previous page.
 - `name` (string): Exact account-scoped bucket name; an empty value matches nothing.
 - `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign accounts, regions or resource types return an empty page. Intersects all other filters.
@@ -3620,8 +3741,8 @@ Path arguments, in order: `bucket`.
 
 Query fields:
 
-- `prefix` (string): 
-- `max_uploads` (integer): 
+- `prefix` (string):
+- `max_uploads` (integer):
 
 ### `storage()->listObjectVersions()`
 
@@ -3633,10 +3754,10 @@ Path arguments, in order: `bucket`.
 
 Query fields:
 
-- `prefix` (string): 
-- `key_marker` (string): 
-- `version_id_marker` (string): 
-- `max_keys` (integer): 
+- `prefix` (string):
+- `key_marker` (string):
+- `version_id_marker` (string):
+- `max_keys` (integer):
 
 ### `storage()->listObjects()`
 
@@ -3648,10 +3769,10 @@ Path arguments, in order: `bucket`.
 
 Query fields:
 
-- `prefix` (string): 
-- `delimiter` (string): 
-- `marker` (string): 
-- `max_keys` (integer): 
+- `prefix` (string):
+- `delimiter` (string):
+- `marker` (string):
+- `max_keys` (integer):
 
 ### `storage()->listParts()`
 
@@ -3669,7 +3790,7 @@ List snapshot policies
 
 Query fields:
 
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last policy id from the previous page.
 - `volume` (string): Account-owned volume UUID, CRN, or exact name. Narrows to the policy attached to that volume.
 - `enabled` (boolean): Narrow to enabled (or paused) policies.
@@ -3684,11 +3805,11 @@ List snapshots
 
 Query fields:
 
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last snapshot id from the previous page.
 - `volume` (string): Account-owned volume UUID, CRN, or exact name.
 - `name` (string): Exact snapshot name within an explicitly supplied volume filter; missing volume returns 400.
-- `status` (string): 
+- `status` (string):
 - `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign accounts, regions or resource types return an empty page. Intersects all other filters.
 - `snapshot_policy` (string): Account-owned snapshot policy UUID, CRN, or exact name.
 
@@ -3711,10 +3832,10 @@ List volumes
 
 Query fields:
 
-- `limit` (integer): 
+- `limit` (integer):
 - `marker` (string): Resume token — the last volume id from the previous page.
 - `name` (string): Exact account-scoped name match; an empty value matches nothing.
-- `status` (string): 
+- `status` (string):
 - `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign accounts, regions or resource types return an empty page. Intersects all other filters.
 
 ### `storage()->putBucketCORS()`
@@ -3727,7 +3848,7 @@ Path arguments, in order: `bucket`.
 
 Body fields:
 
-- `cors` (object, required): 
+- `cors` (object, required):
 
 ### `storage()->putBucketDeletionProtection()`
 
@@ -3752,7 +3873,7 @@ Path arguments, in order: `bucket`.
 
 Body fields:
 
-- `encryption` (object, required): 
+- `encryption` (object, required):
 
 ### `storage()->putBucketLifecycle()`
 
@@ -3768,7 +3889,7 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `lifecycle` (object, required): 
+- `lifecycle` (object, required):
 
 ### `storage()->putBucketObjectLock()`
 
@@ -3780,7 +3901,7 @@ Path arguments, in order: `bucket`.
 
 Body fields:
 
-- `object_lock` (object, required): 
+- `object_lock` (object, required):
 
 ### `storage()->putBucketPolicy()`
 
@@ -3804,7 +3925,7 @@ Path arguments, in order: `bucket`.
 
 Body fields:
 
-- `tags` (object, required): 
+- `tags` (object, required):
 
 ### `storage()->putBucketVersioning()`
 
@@ -3816,7 +3937,7 @@ Path arguments, in order: `bucket`.
 
 Body fields:
 
-- `status` (string, required): 
+- `status` (string, required):
 
 ### `storage()->putObject()`
 
@@ -3848,8 +3969,8 @@ Path arguments, in order: `snapshotId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `storage()->updateSnapshotPolicy()`
 
@@ -3861,12 +3982,12 @@ Path arguments, in order: `policyId`.
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 - `enabled` (boolean): false pauses the policy, true resumes it. Pausing stops the whole policy — no snapshots are taken and none are deleted, so a paused schedule cannot lose you history. Resuming applies the retention window again on the next run, so anything sitting outside it by then — because you lowered `retention_count` while paused, say — is reaped on that run.
 - `interval_minutes` (integer): Minutes between snapshots — a minimum gap, not an exact cadence. A periodic pass takes whatever has come due and re-bases each policy's next run off the moment it ran, so a snapshot lands at or after `interval_minutes` and never before, and can land a minute or two later when the pass is busy. A window the pass misses costs one snapshot rather than producing a catch-up burst afterwards. The floor is one minute, because that pass is what evaluates the schedule and nothing finer can be honoured; the ceiling is 30 days. Sub-hourly intervals multiply snapshot churn and count against the `snapshots` quota, so pick the largest interval that meets your recovery point objective.
 - `retention_count` (integer): How many of this policy's snapshots to keep. When a fire takes the count past this, the oldest go first.
 - `retention_days` (integer): Optional age bound, applied on top of `retention_count`: a snapshot outside EITHER window is reaped. 0 means no age bound. The single newest snapshot is exempt from the age bound, so a volume that could not be snapshotted for longer than the window never loses its whole history.
-- `tags` (object): 
+- `tags` (object):
 
 ### `storage()->updateVolume()`
 
@@ -3878,8 +3999,8 @@ Path arguments, in order: `volumeId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 
 ### `storage()->updateVolumePerformance()`
 
@@ -3895,8 +4016,8 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `iops` (integer): 
-- `throughput_mib_s` (number): 
+- `iops` (integer):
+- `throughput_mib_s` (number):
 
 ### `storage()->uploadPart()`
 
@@ -3921,10 +4042,10 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 - `retention_days` (integer): 1..3650, or omit for never expire
 - `kms_key` (string): KMS key UUID, CRN or exact name in the authenticated account and serving region. The resolved UUID is pinned; deleting a key and reusing its name never retargets existing data. An empty string selects plaintext.
-- `tags` (object): 
+- `tags` (object):
 
 ### `telemetry()->deleteLogGroup()`
 
@@ -3986,7 +4107,7 @@ Ingest a batch of log records
 
 Body fields:
 
-- `logs` (array, required): 
+- `logs` (array, required):
 
 ### `telemetry()->ingestSpans()`
 
@@ -3996,7 +4117,7 @@ Ingest a batch of trace spans
 
 Body fields:
 
-- `spans` (array, required): 
+- `spans` (array, required):
 
 ### `telemetry()->listLogGroups()`
 
@@ -4019,8 +4140,8 @@ List the distinct metric names emitted in a time window
 
 Query fields:
 
-- `start` (string, required): 
-- `end` (string, required): 
+- `start` (string, required):
+- `end` (string, required):
 
 ### `telemetry()->listMetricNamesPost()`
 
@@ -4030,8 +4151,8 @@ List the distinct metric names emitted in a time window (form body)
 
 Body fields:
 
-- `start` (string, required): 
-- `end` (string, required): 
+- `start` (string, required):
+- `end` (string, required):
 
 ### `telemetry()->listMetricSeries()`
 
@@ -4041,9 +4162,9 @@ List distinct label sets for a metric
 
 Query fields:
 
-- `metric` (string, required): 
-- `start` (string, required): 
-- `end` (string, required): 
+- `metric` (string, required):
+- `start` (string, required):
+- `end` (string, required):
 
 ### `telemetry()->listMetricSeriesPost()`
 
@@ -4053,9 +4174,9 @@ List distinct label sets for a metric (form body)
 
 Body fields:
 
-- `metric` (string, required): 
-- `start` (string, required): 
-- `end` (string, required): 
+- `metric` (string, required):
+- `start` (string, required):
+- `end` (string, required):
 
 ### `telemetry()->putTraceSettings()`
 
@@ -4092,12 +4213,12 @@ Instant structured metric query (form body)
 
 Body fields:
 
-- `metric` (string, required): 
-- `agg` (string, required): 
-- `match[]` (array): 
-- `by[]` (array): 
-- `step` (string): 
-- `time` (string): 
+- `metric` (string, required):
+- `agg` (string, required):
+- `match[]` (array):
+- `by[]` (array):
+- `step` (string):
+- `time` (string):
 
 ### `telemetry()->queryMetricsRange()`
 
@@ -4107,12 +4228,12 @@ Range structured metric query
 
 Query fields:
 
-- `metric` (string, required): 
-- `agg` (string, required): 
-- `match[]` (array): 
-- `by[]` (array): 
-- `start` (string, required): 
-- `end` (string, required): 
+- `metric` (string, required):
+- `agg` (string, required):
+- `match[]` (array):
+- `by[]` (array):
+- `start` (string, required):
+- `end` (string, required):
 - `step` (string): Bucket width duration (e.g. "15s", "1m")
 
 ### `telemetry()->queryMetricsRangePost()`
@@ -4123,13 +4244,13 @@ Range structured metric query (form body)
 
 Body fields:
 
-- `metric` (string, required): 
-- `agg` (string, required): 
-- `match[]` (array): 
-- `by[]` (array): 
-- `start` (string, required): 
-- `end` (string, required): 
-- `step` (string): 
+- `metric` (string, required):
+- `agg` (string, required):
+- `match[]` (array):
+- `by[]` (array):
+- `start` (string, required):
+- `end` (string, required):
+- `step` (string):
 
 ### `telemetry()->searchLogs()`
 
@@ -4177,11 +4298,11 @@ Path arguments, in order: `id`.
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 - `retention_days` (integer): 1..3650; pass clear_retention to switch to never expire
 - `clear_retention` (boolean): When true, sets retention to never-expire (ignores retention_days)
 - `kms_key` (string): KMS key UUID, CRN or exact name in the authenticated account and serving region. Omission preserves the pinned UUID; an empty string clears encryption for future records. Unavailable key metadata does not clear the binding.
-- `tags` (object): 
+- `tags` (object):
 
 ### `telemetry()->writeMetrics()`
 
@@ -4204,7 +4325,7 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `email` (string, required): Email of the user to add
-- `tags` (object): 
+- `tags` (object):
 - `groups` (array): Groups to assign when the invitation is accepted. Each reference is validated in the caller organization before the invitation is created.
 
 ### `workspace()->addUserToGroup()`
@@ -4233,7 +4354,7 @@ Path arguments, in order: `accountId`.
 
 Body fields:
 
-- `principal_type` (string, required): 
+- `principal_type` (string, required):
 - `principal_id` (string, required): Immutable UUID of a user or users-only group in this organization.
 - `role_id` (string, required): Immutable UUID of a role owned by the target account.
 
@@ -4321,9 +4442,9 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `name` (string, required): 
-- `handle` (string, required): 
-- `description` (string): 
+- `name` (string, required):
+- `handle` (string, required):
+- `description` (string):
 
 ### `workspace()->createGroup()`
 
@@ -4338,7 +4459,7 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
+- `description` (string):
 
 ### `workspace()->createPolicy()`
 
@@ -4353,8 +4474,8 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `document` (object, required): IAM-style policy document
 
 ### `workspace()->deleteAccount()`
@@ -4869,8 +4990,8 @@ Path arguments, in order: `accountId`.
 
 Body fields:
 
-- `name` (string): 
-- `description` (string): 
+- `name` (string):
+- `description` (string):
 
 ### `workspace()->updateGroup()`
 
@@ -4882,7 +5003,7 @@ Path arguments, in order: `groupId`.
 
 Body fields:
 
-- `description` (string): 
+- `description` (string):
 
 ### `workspace()->updateOrganization()`
 
@@ -4896,8 +5017,8 @@ Body fields:
 
 - `language` (string): Language for organization billing and operational emails, independent of each user's console preference.
 - `time_zone` (string): IANA timezone for formatting organization emails. Does not change billing periods or resource schedules.
-- `name` (string): 
-- `description` (string): 
+- `name` (string):
+- `description` (string):
 - `captcha_token` (string, required): Google reCAPTCHA token for bot protection
 
 ### `workspace()->updatePolicy()`
@@ -4910,6 +5031,6 @@ Path arguments, in order: `policyId`.
 
 Body fields:
 
-- `description` (string): 
-- `tags` (object): 
+- `description` (string):
+- `tags` (object):
 - `document` (object): IAM-style policy document

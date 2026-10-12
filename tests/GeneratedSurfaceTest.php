@@ -59,7 +59,7 @@ final class GeneratedSurfaceTest extends TestCase
                 $count++;
             }
         }
-        self::assertSame(401, $count, 'Review the supported API surface when regenerating.');
+        self::assertSame(413, $count, 'Review the supported API surface when regenerating.');
     }
 
     public function testReferenceKindsHaveNoFallbackAndBothLookupsReturnResource(): void

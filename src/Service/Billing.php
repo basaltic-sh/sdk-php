@@ -263,9 +263,8 @@ final class Billing extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'missing_fields' => [
-                        'type' => 'array',
-                        'items' => [],
+                    'address' => [
+                        'type' => 'object',
                     ],
                 ],
             ],

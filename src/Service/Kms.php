@@ -143,6 +143,76 @@ final class Kms extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'getKeyRotation' => [
+            'id' => 'getKeyRotation',
+            'method' => 'GET',
+            'path' => '/v1/keys/{key_id}/rotations/{rotation_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'getKeyRotationStatus' => [
+            'id' => 'getKeyRotationStatus',
+            'method' => 'GET',
+            'path' => '/v1/keys/{key_id}/rotation',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'getPublicKey' => [
+            'id' => 'getPublicKey',
+            'method' => 'GET',
+            'path' => '/v1/keys/{key_id}/public-key',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'key_version' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'listKeyRotations' => [
+            'id' => 'listKeyRotations',
+            'method' => 'GET',
+            'path' => '/v1/keys/{key_id}/rotations',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'rotations',
+        ],
         'listKeys' => [
             'id' => 'listKeys',
             'method' => 'GET',
@@ -178,6 +248,36 @@ final class Kms extends AbstractService
             'accept' => 'application/json',
             'items_key' => 'keys',
         ],
+        'rewrap' => [
+            'id' => 'rewrap',
+            'method' => 'POST',
+            'path' => '/v1/keys/{key_id}/rewrap',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'rotateKeyOnDemand' => [
+            'id' => 'rotateKeyOnDemand',
+            'method' => 'POST',
+            'path' => '/v1/keys/{key_id}/rotate',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'scheduleKeyDeletion' => [
             'id' => 'scheduleKeyDeletion',
             'method' => 'POST',
@@ -187,6 +287,22 @@ final class Kms extends AbstractService
             'required_headers' => [],
             'query_encoding' => [],
             'body_required' => false,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'setKeyRotation' => [
+            'id' => 'setKeyRotation',
+            'method' => 'PUT',
+            'path' => '/v1/keys/{key_id}/rotation',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
             'content_type' => 'application/json',
             'body_shape' => [
                 'type' => 'object',
@@ -332,6 +448,51 @@ final class Kms extends AbstractService
     }
 
     /**
+     * Get a key rotation
+     */
+    public function getKeyRotation(string $keyId, string $rotationId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('getKeyRotation', ['key_id' => $keyId, 'rotation_id' => $rotationId], null, [], $options);
+    }
+
+    /**
+     * Get key rotation status
+     */
+    public function getKeyRotationStatus(string $keyId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('getKeyRotationStatus', ['key_id' => $keyId], null, [], $options);
+    }
+
+    /**
+     * Get a versioned public key
+     * @param array<string, mixed> $query
+     */
+    public function getPublicKey(string $keyId, array $query = [], ?RequestOptions $options = null): Result
+    {
+        return $this->result('getPublicKey', ['key_id' => $keyId], null, $query, $options);
+    }
+
+    /**
+     * List key rotation history
+     * @param array<string, mixed> $query
+     */
+    public function listKeyRotations(string $keyId, array $query = [], ?RequestOptions $options = null): Page
+    {
+        return $this->page('listKeyRotations', ['key_id' => $keyId], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listKeyRotationsAll(string $keyId, array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listKeyRotations($keyId, array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
+    }
+
+    /**
      * List KMS keys
      * @param array<string, mixed> $query
      */
@@ -352,12 +513,38 @@ final class Kms extends AbstractService
     }
 
     /**
+     * Rewrap ciphertext with current key material
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function rewrap(string $keyId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('rewrap', ['key_id' => $keyId], $body, [], $options);
+    }
+
+    /**
+     * Rotate key material now
+     */
+    public function rotateKeyOnDemand(string $keyId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('rotateKeyOnDemand', ['key_id' => $keyId], null, [], $options);
+    }
+
+    /**
      * Schedule key for deletion
      * @param array<string, mixed>|\stdClass|null $body
      */
     public function scheduleKeyDeletion(string $keyId, array|\stdClass|null $body = null, ?RequestOptions $options = null): Result
     {
         return $this->result('scheduleKeyDeletion', ['key_id' => $keyId], $body, [], $options);
+    }
+
+    /**
+     * Configure automatic key rotation
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function setKeyRotation(string $keyId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('setKeyRotation', ['key_id' => $keyId], $body, [], $options);
     }
 
     /**

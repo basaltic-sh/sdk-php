@@ -15,7 +15,7 @@ privately to **security@basaltic.sh**, following [SECURITY.md](SECURITY.md).
 Install [basaltic-sh/sdk-php from Packagist](https://packagist.org/packages/basaltic-sh/sdk-php):
 
 ```bash
-composer require basaltic-sh/sdk-php:^0.2
+composer require basaltic-sh/sdk-php:^0.3
 ```
 
 Packagist distributes the source from this repository's versioned release tags.
@@ -221,3 +221,17 @@ version. Existing public versions are immutable. This is a v0.x SDK while the
 API surface settles.
 
 Apache 2.0. See [LICENSE](LICENSE).
+
+## KMS key rotation
+
+The KMS client supports automatic rotation policies, on-demand rotation, paginated
+rotation history, public keys by material version, and ciphertext rewrapping.
+Reuse an idempotency key when retrying the same on-demand rotation. A `202`
+response represents accepted work; poll its rotation ID until it completes.
+Persist the material version returned by signing and supply it when verifying
+or retrieving a public key. Verification without a version remains compatible
+with older signatures. Rotation retains existing key identities and historical
+material; it does not rewrite stored ciphertext.
+
+See [KMS rotation](https://docs.basaltic.sh/kms/rotation) for the lifecycle,
+permissions, and migration workflow.
