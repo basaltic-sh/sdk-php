@@ -129,6 +129,31 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'createOIDCProvider' => [
+            'id' => 'createOIDCProvider',
+            'method' => 'POST',
+            'path' => '/v1/oidc-providers',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+                'properties' => [
+                    'audiences' => [
+                        'type' => 'array',
+                        'items' => [],
+                    ],
+                    'tags' => [
+                        'type' => 'object',
+                    ],
+                ],
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'createPersonalSSHKey' => [
             'id' => 'createPersonalSSHKey',
             'method' => 'POST',
@@ -302,6 +327,20 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'deleteOIDCProvider' => [
+            'id' => 'deleteOIDCProvider',
+            'method' => 'DELETE',
+            'path' => '/v1/oidc-providers/{provider_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'deletePersonalSSHKey' => [
             'id' => 'deletePersonalSSHKey',
             'method' => 'DELETE',
@@ -458,6 +497,20 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'getOIDCProvider' => [
+            'id' => 'getOIDCProvider',
+            'method' => 'GET',
+            'path' => '/v1/oidc-providers/{provider_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'getPersonalLinuxIdentity' => [
             'id' => 'getPersonalLinuxIdentity',
             'method' => 'GET',
@@ -598,6 +651,37 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'listOIDCProviders' => [
+            'id' => 'listOIDCProviders',
+            'method' => 'GET',
+            'path' => '/v1/oidc-providers',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'name' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'crn' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'oidc_providers',
+        ],
         'listPersonalSSHKeys' => [
             'id' => 'listPersonalSSHKeys',
             'method' => 'GET',
@@ -704,29 +788,6 @@ final class Iam extends AbstractService
             'body_shape' => [],
             'accept' => 'application/json',
             'items_key' => 'service_accounts',
-        ],
-        'listRegions' => [
-            'id' => 'listRegions',
-            'method' => 'GET',
-            'path' => '/v1/regions',
-            'authenticated' => false,
-            'required_query' => [],
-            'required_headers' => [],
-            'query_encoding' => [
-                'name' => [
-                    'style' => 'form',
-                    'explode' => true,
-                ],
-                'crn' => [
-                    'style' => 'form',
-                    'explode' => true,
-                ],
-            ],
-            'body_required' => false,
-            'content_type' => '',
-            'body_shape' => [],
-            'accept' => 'application/json',
-            'items_key' => 'regions',
         ],
         'listRoleInlinePolicies' => [
             'id' => 'listRoleInlinePolicies',
@@ -1176,6 +1237,31 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'updateOIDCProvider' => [
+            'id' => 'updateOIDCProvider',
+            'method' => 'PATCH',
+            'path' => '/v1/oidc-providers/{provider_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+                'properties' => [
+                    'audiences' => [
+                        'type' => 'array',
+                        'items' => [],
+                    ],
+                    'tags' => [
+                        'type' => 'object',
+                    ],
+                ],
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'updatePolicy' => [
             'id' => 'updatePolicy',
             'method' => 'PATCH',
@@ -1349,6 +1435,15 @@ final class Iam extends AbstractService
     }
 
     /**
+     * Create an OIDC provider
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function createOIDCProvider(array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('createOIDCProvider', [], $body, [], $options);
+    }
+
+    /**
      * Add personal SSH key
      * @param array<string, mixed>|\stdClass $body
      */
@@ -1400,6 +1495,14 @@ final class Iam extends AbstractService
     public function createServiceAccountSSHKey(string $serviceAccountId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('createServiceAccountSSHKey', ['service_account_id' => $serviceAccountId], $body, [], $options);
+    }
+
+    /**
+     * Delete an OIDC provider
+     */
+    public function deleteOIDCProvider(string $providerId, ?RequestOptions $options = null): void
+    {
+        $this->discard('deleteOIDCProvider', ['provider_id' => $providerId], null, [], $options);
     }
 
     /**
@@ -1489,6 +1592,28 @@ final class Iam extends AbstractService
     public function getOAuthToken(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('getOAuthToken', [], $body, [], $options);
+    }
+
+    /**
+     * Get an OIDC provider
+     */
+    public function getOIDCProvider(string $providerId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('getOIDCProvider', ['provider_id' => $providerId], null, [], $options);
+    }
+
+    /** @param array<string, mixed> $scope */
+    public function getOIDCProviderByReference(string $reference, array $scope = [], ?RequestOptions $options = null): Result
+    {
+        unset($scope['name'], $scope['crn'], $scope['marker']);
+        $scope['limit'] = 2;
+        return Reference::resolve(
+            $reference,
+            fn (string $id): Result => $this->getOIDCProvider($id, $options),
+            fn (array $filter): Page => $this->listOIDCProviders(array_replace($scope, $filter), $options),
+            true,
+            'oidc_provider',
+        );
     }
 
     /**
@@ -1654,6 +1779,26 @@ final class Iam extends AbstractService
     }
 
     /**
+     * List OIDC providers
+     * @param array<string, mixed> $query
+     */
+    public function listOIDCProviders(array $query = [], ?RequestOptions $options = null): Page
+    {
+        return $this->page('listOIDCProviders', [], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listOIDCProvidersAll(array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listOIDCProviders(array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
+    }
+
+    /**
      * List personal SSH keys
      */
     public function listPersonalSSHKeys(?RequestOptions $options = null): Page
@@ -1728,26 +1873,6 @@ final class Iam extends AbstractService
     {
         return Page::iterate(
             fn (string $marker): Page => $this->listPolicyServiceAccounts($policyId, array_replace($query, ['marker' => $marker]), $options),
-            (string) ($query['marker'] ?? ''),
-        );
-    }
-
-    /**
-     * List regions (legacy IAM)
-     * @param array<string, mixed> $query
-     */
-    public function listRegions(array $query = [], ?RequestOptions $options = null): Page
-    {
-        return $this->page('listRegions', [], null, $query, $options);
-    }
-
-    /** @param array<string, mixed> $query
-     * @return \Generator<int, mixed>
-     */
-    public function listRegionsAll(array $query = [], ?RequestOptions $options = null): \Generator
-    {
-        return Page::iterate(
-            fn (string $marker): Page => $this->listRegions($query, $options),
             (string) ($query['marker'] ?? ''),
         );
     }
@@ -1999,6 +2124,15 @@ final class Iam extends AbstractService
     public function setServiceAccountPermissionBoundary(string $serviceAccountId, array|\stdClass $body, ?RequestOptions $options = null): void
     {
         $this->discard('setServiceAccountPermissionBoundary', ['service_account_id' => $serviceAccountId], $body, [], $options);
+    }
+
+    /**
+     * Update an OIDC provider
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function updateOIDCProvider(string $providerId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('updateOIDCProvider', ['provider_id' => $providerId], $body, [], $options);
     }
 
     /**

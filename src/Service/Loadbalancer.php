@@ -65,9 +65,7 @@ final class Loadbalancer extends AbstractService
                 'properties' => [
                     'certificates' => [
                         'type' => 'array',
-                        'items' => [
-                            'type' => 'object',
-                        ],
+                        'items' => [],
                     ],
                     'tags' => [
                         'type' => 'object',
@@ -105,6 +103,10 @@ final class Loadbalancer extends AbstractService
                                 ],
                             ],
                         ],
+                    ],
+                    'subnets' => [
+                        'type' => 'array',
+                        'items' => [],
                     ],
                     'floating_ips' => [
                         'type' => 'array',
@@ -333,6 +335,20 @@ final class Loadbalancer extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'listListenerCertificates' => [
+            'id' => 'listListenerCertificates',
+            'method' => 'GET',
+            'path' => '/v1/load-balancers/{id}/listeners/{listener_id}/certificates',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'certificates',
+        ],
         'listListeners' => [
             'id' => 'listListeners',
             'method' => 'GET',
@@ -356,19 +372,39 @@ final class Loadbalancer extends AbstractService
             'accept' => 'application/json',
             'items_key' => 'listeners',
         ],
-        'listLoadBalancerReplicas' => [
-            'id' => 'listLoadBalancerReplicas',
+        'listLoadBalancerInstances' => [
+            'id' => 'listLoadBalancerInstances',
             'method' => 'GET',
-            'path' => '/v1/load-balancers/{id}/replicas',
+            'path' => '/v1/load-balancers/{id}/instances',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
             'query_encoding' => [
+                'crn' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
                 'name' => [
                     'style' => 'form',
                     'explode' => true,
                 ],
-                'crn' => [
+                'current_state' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'flavor' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'image' => [
                     'style' => 'form',
                     'explode' => true,
                 ],
@@ -377,7 +413,7 @@ final class Loadbalancer extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'replicas',
+            'items_key' => 'instances',
         ],
         'listLoadBalancers' => [
             'id' => 'listLoadBalancers',
@@ -822,6 +858,25 @@ final class Loadbalancer extends AbstractService
     }
 
     /**
+     * List listener certificates
+     */
+    public function listListenerCertificates(string $id, string $listenerId, ?RequestOptions $options = null): Page
+    {
+        return $this->page('listListenerCertificates', ['id' => $id, 'listener_id' => $listenerId], null, [], $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listListenerCertificatesAll(string $id, string $listenerId, array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listListenerCertificates($id, $listenerId, $options),
+            (string) ($query['marker'] ?? ''),
+        );
+    }
+
+    /**
      * List this load balancer's listeners
      * @param array<string, mixed> $query
      */
@@ -842,21 +897,21 @@ final class Loadbalancer extends AbstractService
     }
 
     /**
-     * List the LB's instance replicas with live health
+     * List a load balancer's instances
      * @param array<string, mixed> $query
      */
-    public function listLoadBalancerReplicas(string $id, array $query = [], ?RequestOptions $options = null): Page
+    public function listLoadBalancerInstances(string $id, array $query = [], ?RequestOptions $options = null): Page
     {
-        return $this->page('listLoadBalancerReplicas', ['id' => $id], null, $query, $options);
+        return $this->page('listLoadBalancerInstances', ['id' => $id], null, $query, $options);
     }
 
     /** @param array<string, mixed> $query
      * @return \Generator<int, mixed>
      */
-    public function listLoadBalancerReplicasAll(string $id, array $query = [], ?RequestOptions $options = null): \Generator
+    public function listLoadBalancerInstancesAll(string $id, array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listLoadBalancerReplicas($id, $query, $options),
+            fn (string $marker): Page => $this->listLoadBalancerInstances($id, array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
     }
@@ -942,7 +997,7 @@ final class Loadbalancer extends AbstractService
     }
 
     /**
-     * Patch a listener (rotate cert, change default target group)
+     * Update a listener
      * @param array<string, mixed>|\stdClass $body
      */
     public function updateListener(string $id, string $listenerId, array|\stdClass $body, ?RequestOptions $options = null): Result

@@ -21,7 +21,7 @@ final class Network extends AbstractService
         'attachFloatingIp' => [
             'id' => 'attachFloatingIp',
             'method' => 'POST',
-            'path' => '/v1/floating-ips/{floating_ip_id}/attach',
+            'path' => '/v1/floating-ips/{floating_ip_id}/interfaces',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -34,10 +34,10 @@ final class Network extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
-        'attachInternetGateway' => [
-            'id' => 'attachInternetGateway',
+        'attachInterfaceSecurityGroup' => [
+            'id' => 'attachInterfaceSecurityGroup',
             'method' => 'POST',
-            'path' => '/v1/internet-gateways/{internet_gateway_id}/attach',
+            'path' => '/v1/interfaces/{interface_id}/security-groups',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -531,24 +531,8 @@ final class Network extends AbstractService
         ],
         'detachFloatingIp' => [
             'id' => 'detachFloatingIp',
-            'method' => 'POST',
-            'path' => '/v1/floating-ips/{floating_ip_id}/detach',
-            'authenticated' => true,
-            'required_query' => [],
-            'required_headers' => [],
-            'query_encoding' => [],
-            'body_required' => false,
-            'content_type' => 'application/json',
-            'body_shape' => [
-                'type' => 'object',
-            ],
-            'accept' => 'application/json',
-            'items_key' => null,
-        ],
-        'detachInternetGateway' => [
-            'id' => 'detachInternetGateway',
-            'method' => 'POST',
-            'path' => '/v1/internet-gateways/{internet_gateway_id}/detach',
+            'method' => 'DELETE',
+            'path' => '/v1/floating-ips/{floating_ip_id}/interfaces',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -556,6 +540,66 @@ final class Network extends AbstractService
             'body_required' => false,
             'content_type' => '',
             'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'detachFloatingIpInterface' => [
+            'id' => 'detachFloatingIpInterface',
+            'method' => 'DELETE',
+            'path' => '/v1/floating-ips/{floating_ip_id}/interfaces/{interface_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'detachInterfaceSecurityGroup' => [
+            'id' => 'detachInterfaceSecurityGroup',
+            'method' => 'DELETE',
+            'path' => '/v1/interfaces/{interface_id}/security-groups/{security_group_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'enableSubnetIPv6' => [
+            'id' => 'enableSubnetIPv6',
+            'method' => 'POST',
+            'path' => '/v1/subnets/{subnet_id}/ipv6',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'enableVPCIPv6' => [
+            'id' => 'enableVPCIPv6',
+            'method' => 'POST',
+            'path' => '/v1/vpcs/{vpc_id}/ipv6',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
             'accept' => 'application/json',
             'items_key' => null,
         ],
@@ -789,6 +833,37 @@ final class Network extends AbstractService
             'accept' => 'application/json',
             'items_key' => 'egress_only_gateways',
         ],
+        'listFloatingIpInterfaces' => [
+            'id' => 'listFloatingIpInterfaces',
+            'method' => 'GET',
+            'path' => '/v1/floating-ips/{floating_ip_id}/interfaces',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'crn' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'name' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'interfaces',
+        ],
         'listFloatingIps' => [
             'id' => 'listFloatingIps',
             'method' => 'GET',
@@ -850,7 +925,7 @@ final class Network extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'routed_prefixes',
+            'items_key' => 'prefixes',
         ],
         'listInterfaceSecurityGroups' => [
             'id' => 'listInterfaceSecurityGroups',
@@ -868,12 +943,20 @@ final class Network extends AbstractService
                     'style' => 'form',
                     'explode' => true,
                 ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
             ],
             'body_required' => false,
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'security_group_ids',
+            'items_key' => 'security_groups',
         ],
         'listInterfaces' => [
             'id' => 'listInterfaces',
@@ -1254,28 +1337,6 @@ final class Network extends AbstractService
             'accept' => 'application/json',
             'items_key' => 'vpcs',
         ],
-        'setInterfaceSecurityGroups' => [
-            'id' => 'setInterfaceSecurityGroups',
-            'method' => 'PUT',
-            'path' => '/v1/interfaces/{interface_id}/security-groups',
-            'authenticated' => true,
-            'required_query' => [],
-            'required_headers' => [],
-            'query_encoding' => [],
-            'body_required' => true,
-            'content_type' => 'application/json',
-            'body_shape' => [
-                'type' => 'object',
-                'properties' => [
-                    'security_groups' => [
-                        'type' => 'array',
-                        'items' => [],
-                    ],
-                ],
-            ],
-            'accept' => 'application/json',
-            'items_key' => null,
-        ],
         'updateEgressOnlyGateway' => [
             'id' => 'updateEgressOnlyGateway',
             'method' => 'PATCH',
@@ -1311,9 +1372,6 @@ final class Network extends AbstractService
                 'type' => 'object',
                 'properties' => [
                     'tags' => [
-                        'type' => 'object',
-                    ],
-                    'health_check' => [
                         'type' => 'object',
                     ],
                 ],
@@ -1492,7 +1550,7 @@ final class Network extends AbstractService
     ];
 
     /**
-     * Attach a floating IP to an interface
+     * Attach an interface to a floating IP
      * @param array<string, mixed>|\stdClass $body
      */
     public function attachFloatingIp(string $floatingIpId, array|\stdClass $body, ?RequestOptions $options = null): Result
@@ -1501,12 +1559,12 @@ final class Network extends AbstractService
     }
 
     /**
-     * Attach internet gateway to a VPC
+     * Attach a security group to an interface
      * @param array<string, mixed>|\stdClass $body
      */
-    public function attachInternetGateway(string $internetGatewayId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    public function attachInterfaceSecurityGroup(string $interfaceId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
-        return $this->result('attachInternetGateway', ['internet_gateway_id' => $internetGatewayId], $body, [], $options);
+        return $this->result('attachInterfaceSecurityGroup', ['interface_id' => $interfaceId], $body, [], $options);
     }
 
     /**
@@ -1748,20 +1806,45 @@ final class Network extends AbstractService
     }
 
     /**
-     * Detach a floating IP
-     * @param array<string, mixed>|\stdClass|null $body
+     * Detach all direct interfaces from a floating IP
      */
-    public function detachFloatingIp(string $floatingIpId, array|\stdClass|null $body = null, ?RequestOptions $options = null): Result
+    public function detachFloatingIp(string $floatingIpId, ?RequestOptions $options = null): void
     {
-        return $this->result('detachFloatingIp', ['floating_ip_id' => $floatingIpId], $body, [], $options);
+        $this->discard('detachFloatingIp', ['floating_ip_id' => $floatingIpId], null, [], $options);
     }
 
     /**
-     * Detach internet gateway from its VPC
+     * Detach an interface from a floating IP
      */
-    public function detachInternetGateway(string $internetGatewayId, ?RequestOptions $options = null): Result
+    public function detachFloatingIpInterface(string $floatingIpId, string $interfaceId, ?RequestOptions $options = null): void
     {
-        return $this->result('detachInternetGateway', ['internet_gateway_id' => $internetGatewayId], null, [], $options);
+        $this->discard('detachFloatingIpInterface', ['floating_ip_id' => $floatingIpId, 'interface_id' => $interfaceId], null, [], $options);
+    }
+
+    /**
+     * Detach a security group from an interface
+     */
+    public function detachInterfaceSecurityGroup(string $interfaceId, string $securityGroupId, ?RequestOptions $options = null): void
+    {
+        $this->discard('detachInterfaceSecurityGroup', ['interface_id' => $interfaceId, 'security_group_id' => $securityGroupId], null, [], $options);
+    }
+
+    /**
+     * Enable IPv6 on a subnet
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function enableSubnetIPv6(string $subnetId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('enableSubnetIPv6', ['subnet_id' => $subnetId], $body, [], $options);
+    }
+
+    /**
+     * Enable IPv6 on a vpc
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function enableVPCIPv6(string $vpcId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('enableVPCIPv6', ['vpc_id' => $vpcId], $body, [], $options);
     }
 
     /**
@@ -2055,6 +2138,26 @@ final class Network extends AbstractService
     }
 
     /**
+     * List a floating IP’s interfaces
+     * @param array<string, mixed> $query
+     */
+    public function listFloatingIpInterfaces(string $floatingIpId, array $query = [], ?RequestOptions $options = null): Page
+    {
+        return $this->page('listFloatingIpInterfaces', ['floating_ip_id' => $floatingIpId], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listFloatingIpInterfacesAll(string $floatingIpId, array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listFloatingIpInterfaces($floatingIpId, array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
+    }
+
+    /**
      * List floating IPs
      * @param array<string, mixed> $query
      */
@@ -2113,7 +2216,7 @@ final class Network extends AbstractService
     }
 
     /**
-     * List interface security-group membership
+     * List an interface’s security groups
      * @param array<string, mixed> $query
      */
     public function listInterfaceSecurityGroups(string $interfaceId, array $query = [], ?RequestOptions $options = null): Page
@@ -2127,7 +2230,7 @@ final class Network extends AbstractService
     public function listInterfaceSecurityGroupsAll(string $interfaceId, array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listInterfaceSecurityGroups($interfaceId, $query, $options),
+            fn (string $marker): Page => $this->listInterfaceSecurityGroups($interfaceId, array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
     }
@@ -2369,15 +2472,6 @@ final class Network extends AbstractService
             fn (string $marker): Page => $this->listVpcs(array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
-    }
-
-    /**
-     * Set interface security-group membership
-     * @param array<string, mixed>|\stdClass $body
-     */
-    public function setInterfaceSecurityGroups(string $interfaceId, array|\stdClass $body, ?RequestOptions $options = null): Result
-    {
-        return $this->result('setInterfaceSecurityGroups', ['interface_id' => $interfaceId], $body, [], $options);
     }
 
     /**

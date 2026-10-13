@@ -96,7 +96,7 @@ final class Storage extends AbstractService
         'createSnapshotPolicy' => [
             'id' => 'createSnapshotPolicy',
             'method' => 'POST',
-            'path' => '/v1/snapshot-policies',
+            'path' => '/v1/volumes/{volume_id}/snapshot-policies',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -269,7 +269,7 @@ final class Storage extends AbstractService
         'deleteSnapshotPolicy' => [
             'id' => 'deleteSnapshotPolicy',
             'method' => 'DELETE',
-            'path' => '/v1/snapshot-policies/{policy_id}',
+            'path' => '/v1/volumes/{volume_id}/snapshot-policies/{policy_id}',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -439,7 +439,7 @@ final class Storage extends AbstractService
         'getSnapshotPolicy' => [
             'id' => 'getSnapshotPolicy',
             'method' => 'GET',
-            'path' => '/v1/snapshot-policies/{policy_id}',
+            'path' => '/v1/volumes/{volume_id}/snapshot-policies/{policy_id}',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -646,7 +646,7 @@ final class Storage extends AbstractService
         'listSnapshotPolicies' => [
             'id' => 'listSnapshotPolicies',
             'method' => 'GET',
-            'path' => '/v1/snapshot-policies',
+            'path' => '/v1/volumes/{volume_id}/snapshot-policies',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -656,10 +656,6 @@ final class Storage extends AbstractService
                     'explode' => true,
                 ],
                 'marker' => [
-                    'style' => 'form',
-                    'explode' => true,
-                ],
-                'volume' => [
                     'style' => 'form',
                     'explode' => true,
                 ],
@@ -796,31 +792,26 @@ final class Storage extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'cors' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'rules' => [
-                                'type' => 'array',
-                                'items' => [
-                                    'type' => 'object',
-                                    'properties' => [
-                                        'allowed_origins' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                        'allowed_methods' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                        'allowed_headers' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                        'expose_headers' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                    ],
+                    'cors_rules' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'allowed_origins' => [
+                                    'type' => 'array',
+                                    'items' => [],
+                                ],
+                                'allowed_methods' => [
+                                    'type' => 'array',
+                                    'items' => [],
+                                ],
+                                'allowed_headers' => [
+                                    'type' => 'array',
+                                    'items' => [],
+                                ],
+                                'expose_headers' => [
+                                    'type' => 'array',
+                                    'items' => [],
                                 ],
                             ],
                         ],
@@ -859,18 +850,13 @@ final class Storage extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'encryption' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'rules' => [
-                                'type' => 'array',
-                                'items' => [
+                    'encryption_rules' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'default' => [
                                     'type' => 'object',
-                                    'properties' => [
-                                        'default' => [
-                                            'type' => 'object',
-                                        ],
-                                    ],
                                 ],
                             ],
                         ],
@@ -895,30 +881,25 @@ final class Storage extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'lifecycle' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'rules' => [
-                                'type' => 'array',
-                                'items' => [
+                    'lifecycle_rules' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'filter' => [
                                     'type' => 'object',
-                                    'properties' => [
-                                        'filter' => [
-                                            'type' => 'object',
-                                        ],
-                                        'transition' => [
-                                            'type' => 'object',
-                                        ],
-                                        'expiration' => [
-                                            'type' => 'object',
-                                        ],
-                                        'noncurrent_version_expiration' => [
-                                            'type' => 'object',
-                                        ],
-                                        'abort_incomplete_multipart_upload' => [
-                                            'type' => 'object',
-                                        ],
-                                    ],
+                                ],
+                                'transition' => [
+                                    'type' => 'object',
+                                ],
+                                'expiration' => [
+                                    'type' => 'object',
+                                ],
+                                'noncurrent_version_expiration' => [
+                                    'type' => 'object',
+                                ],
+                                'abort_incomplete_multipart_upload' => [
+                                    'type' => 'object',
                                 ],
                             ],
                         ],
@@ -941,16 +922,11 @@ final class Storage extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'object_lock' => [
+                    'object_lock_rule' => [
                         'type' => 'object',
                         'properties' => [
-                            'rule' => [
+                            'default_retention' => [
                                 'type' => 'object',
-                                'properties' => [
-                                    'default_retention' => [
-                                        'type' => 'object',
-                                    ],
-                                ],
                             ],
                         ],
                     ],
@@ -1069,7 +1045,7 @@ final class Storage extends AbstractService
         'updateSnapshotPolicy' => [
             'id' => 'updateSnapshotPolicy',
             'method' => 'PATCH',
-            'path' => '/v1/snapshot-policies/{policy_id}',
+            'path' => '/v1/volumes/{volume_id}/snapshot-policies/{policy_id}',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -1179,9 +1155,9 @@ final class Storage extends AbstractService
      * Create snapshot policy
      * @param array<string, mixed>|\stdClass $body
      */
-    public function createSnapshotPolicy(array|\stdClass $body, ?RequestOptions $options = null): Result
+    public function createSnapshotPolicy(string $volumeId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
-        return $this->result('createSnapshotPolicy', [], $body, [], $options);
+        return $this->result('createSnapshotPolicy', ['volume_id' => $volumeId], $body, [], $options);
     }
 
     /**
@@ -1268,9 +1244,9 @@ final class Storage extends AbstractService
     /**
      * Delete snapshot policy
      */
-    public function deleteSnapshotPolicy(string $policyId, ?RequestOptions $options = null): void
+    public function deleteSnapshotPolicy(string $volumeId, string $policyId, ?RequestOptions $options = null): void
     {
-        $this->discard('deleteSnapshotPolicy', ['policy_id' => $policyId], null, [], $options);
+        $this->discard('deleteSnapshotPolicy', ['volume_id' => $volumeId, 'policy_id' => $policyId], null, [], $options);
     }
 
     /**
@@ -1379,20 +1355,20 @@ final class Storage extends AbstractService
     /**
      * Get snapshot policy
      */
-    public function getSnapshotPolicy(string $policyId, ?RequestOptions $options = null): Result
+    public function getSnapshotPolicy(string $volumeId, string $policyId, ?RequestOptions $options = null): Result
     {
-        return $this->result('getSnapshotPolicy', ['policy_id' => $policyId], null, [], $options);
+        return $this->result('getSnapshotPolicy', ['volume_id' => $volumeId, 'policy_id' => $policyId], null, [], $options);
     }
 
     /** @param array<string, mixed> $scope */
-    public function getSnapshotPolicyByReference(string $reference, array $scope = [], ?RequestOptions $options = null): Result
+    public function getSnapshotPolicyByReference(string $volumeId, string $reference, array $scope = [], ?RequestOptions $options = null): Result
     {
         unset($scope['name'], $scope['crn'], $scope['marker']);
         $scope['limit'] = 2;
         return Reference::resolve(
             $reference,
-            fn (string $id): Result => $this->getSnapshotPolicy($id, $options),
-            fn (array $filter): Page => $this->listSnapshotPolicies(array_replace($scope, $filter), $options),
+            fn (string $id): Result => $this->getSnapshotPolicy($volumeId, $id, $options),
+            fn (array $filter): Page => $this->listSnapshotPolicies($volumeId, array_replace($scope, $filter), $options),
             true,
             'snapshot_policy',
         );
@@ -1537,18 +1513,18 @@ final class Storage extends AbstractService
      * List snapshot policies
      * @param array<string, mixed> $query
      */
-    public function listSnapshotPolicies(array $query = [], ?RequestOptions $options = null): Page
+    public function listSnapshotPolicies(string $volumeId, array $query = [], ?RequestOptions $options = null): Page
     {
-        return $this->page('listSnapshotPolicies', [], null, $query, $options);
+        return $this->page('listSnapshotPolicies', ['volume_id' => $volumeId], null, $query, $options);
     }
 
     /** @param array<string, mixed> $query
      * @return \Generator<int, mixed>
      */
-    public function listSnapshotPoliciesAll(array $query = [], ?RequestOptions $options = null): \Generator
+    public function listSnapshotPoliciesAll(string $volumeId, array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listSnapshotPolicies(array_replace($query, ['marker' => $marker]), $options),
+            fn (string $marker): Page => $this->listSnapshotPolicies($volumeId, array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
     }
@@ -1715,9 +1691,9 @@ final class Storage extends AbstractService
      * Update snapshot policy
      * @param array<string, mixed>|\stdClass $body
      */
-    public function updateSnapshotPolicy(string $policyId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    public function updateSnapshotPolicy(string $volumeId, string $policyId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
-        return $this->result('updateSnapshotPolicy', ['policy_id' => $policyId], $body, [], $options);
+        return $this->result('updateSnapshotPolicy', ['volume_id' => $volumeId, 'policy_id' => $policyId], $body, [], $options);
     }
 
     /**

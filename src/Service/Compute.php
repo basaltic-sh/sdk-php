@@ -18,10 +18,10 @@ final class Compute extends AbstractService
     protected const SERVICE = 'compute';
     protected const ENDPOINT = 'https://compute.{region}.basaltic.sh';
     protected const OPERATIONS = [
-        'attachInstanceNIC' => [
-            'id' => 'attachInstanceNIC',
+        'attachInstanceInterface' => [
+            'id' => 'attachInstanceInterface',
             'method' => 'POST',
-            'path' => '/v1/instances/{instance_id}/nics',
+            'path' => '/v1/instances/{instance_id}/interfaces',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -167,6 +167,10 @@ final class Compute extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'subnets' => [
+                        'type' => 'array',
+                        'items' => [],
+                    ],
                     'autoscaling' => [
                         'type' => 'object',
                         'properties' => [
@@ -189,23 +193,15 @@ final class Compute extends AbstractService
                     'template' => [
                         'type' => 'object',
                         'properties' => [
-                            'networks' => [
+                            'addresses' => [
                                 'type' => 'array',
                                 'items' => [
                                     'type' => 'object',
-                                    'properties' => [
-                                        'security_groups' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                        'addresses' => [
-                                            'type' => 'array',
-                                            'items' => [
-                                                'type' => 'object',
-                                            ],
-                                        ],
-                                    ],
                                 ],
+                            ],
+                            'security_groups' => [
+                                'type' => 'array',
+                                'items' => [],
                             ],
                             'metadata' => [
                                 'type' => 'object',
@@ -287,10 +283,10 @@ final class Compute extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
-        'detachInstanceNIC' => [
-            'id' => 'detachInstanceNIC',
+        'detachInstanceInterface' => [
+            'id' => 'detachInstanceInterface',
             'method' => 'DELETE',
-            'path' => '/v1/instances/{instance_id}/nics/{interface_id}',
+            'path' => '/v1/instances/{instance_id}/interfaces/{interface_id}',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -527,10 +523,10 @@ final class Compute extends AbstractService
             'accept' => 'application/json',
             'items_key' => 'images',
         ],
-        'listInstanceNICs' => [
-            'id' => 'listInstanceNICs',
+        'listInstanceInterfaces' => [
+            'id' => 'listInstanceInterfaces',
             'method' => 'GET',
-            'path' => '/v1/instances/{instance_id}/nics',
+            'path' => '/v1/instances/{instance_id}/interfaces',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -548,7 +544,7 @@ final class Compute extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'nics',
+            'items_key' => 'interfaces',
         ],
         'listInstancePoolFloatingIps' => [
             'id' => 'listInstancePoolFloatingIps',
@@ -633,7 +629,7 @@ final class Compute extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'attachments',
+            'items_key' => 'volumes',
         ],
         'listInstances' => [
             'id' => 'listInstances',
@@ -891,6 +887,10 @@ final class Compute extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'subnets' => [
+                        'type' => 'array',
+                        'items' => [],
+                    ],
                     'autoscaling' => [
                         'type' => 'object',
                         'properties' => [
@@ -913,23 +913,15 @@ final class Compute extends AbstractService
                     'template' => [
                         'type' => 'object',
                         'properties' => [
-                            'networks' => [
+                            'addresses' => [
                                 'type' => 'array',
                                 'items' => [
                                     'type' => 'object',
-                                    'properties' => [
-                                        'security_groups' => [
-                                            'type' => 'array',
-                                            'items' => [],
-                                        ],
-                                        'addresses' => [
-                                            'type' => 'array',
-                                            'items' => [
-                                                'type' => 'object',
-                                            ],
-                                        ],
-                                    ],
                                 ],
+                            ],
+                            'security_groups' => [
+                                'type' => 'array',
+                                'items' => [],
                             ],
                             'metadata' => [
                                 'type' => 'object',
@@ -977,9 +969,9 @@ final class Compute extends AbstractService
      * Attach an existing NIC to an instance
      * @param array<string, mixed>|\stdClass $body
      */
-    public function attachInstanceNIC(string $instanceId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    public function attachInstanceInterface(string $instanceId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
-        return $this->result('attachInstanceNIC', ['instance_id' => $instanceId], $body, [], $options);
+        return $this->result('attachInstanceInterface', ['instance_id' => $instanceId], $body, [], $options);
     }
 
     /**
@@ -1060,11 +1052,11 @@ final class Compute extends AbstractService
     }
 
     /**
-     * Detach a NIC from a running instance
+     * Detach an interface from a running instance
      */
-    public function detachInstanceNIC(string $instanceId, string $interfaceId, ?RequestOptions $options = null): void
+    public function detachInstanceInterface(string $instanceId, string $interfaceId, ?RequestOptions $options = null): void
     {
-        $this->discard('detachInstanceNIC', ['instance_id' => $instanceId, 'interface_id' => $interfaceId], null, [], $options);
+        $this->discard('detachInstanceInterface', ['instance_id' => $instanceId, 'interface_id' => $interfaceId], null, [], $options);
     }
 
     /**
@@ -1251,18 +1243,18 @@ final class Compute extends AbstractService
      * List the instance's network interfaces
      * @param array<string, mixed> $query
      */
-    public function listInstanceNICs(string $instanceId, array $query = [], ?RequestOptions $options = null): Page
+    public function listInstanceInterfaces(string $instanceId, array $query = [], ?RequestOptions $options = null): Page
     {
-        return $this->page('listInstanceNICs', ['instance_id' => $instanceId], null, $query, $options);
+        return $this->page('listInstanceInterfaces', ['instance_id' => $instanceId], null, $query, $options);
     }
 
     /** @param array<string, mixed> $query
      * @return \Generator<int, mixed>
      */
-    public function listInstanceNICsAll(string $instanceId, array $query = [], ?RequestOptions $options = null): \Generator
+    public function listInstanceInterfacesAll(string $instanceId, array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listInstanceNICs($instanceId, $query, $options),
+            fn (string $marker): Page => $this->listInstanceInterfaces($instanceId, $query, $options),
             (string) ($query['marker'] ?? ''),
         );
     }

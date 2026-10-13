@@ -271,7 +271,7 @@ final class Dns extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'vpc_ids',
+            'items_key' => 'vpcs',
         ],
         'listZones' => [
             'id' => 'listZones',

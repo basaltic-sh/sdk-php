@@ -127,12 +127,20 @@ final class Billing extends AbstractService
                     'style' => 'form',
                     'explode' => true,
                 ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
             ],
             'body_required' => false,
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'fiscal_documents',
+            'items_key' => 'fiscal_invoices',
         ],
         'listInvoices' => [
             'id' => 'listInvoices',
@@ -315,7 +323,7 @@ final class Billing extends AbstractService
             fn (string $id): Result => $this->getInvoice($id, $options),
             fn (array $filter): Page => $this->listInvoices(array_replace($scope, $filter), $options),
             false,
-            null,
+            'invoice',
         );
     }
 
@@ -348,7 +356,7 @@ final class Billing extends AbstractService
     }
 
     /**
-     * List fiscal invoice issuance and delivery status
+     * List issued fiscal invoices
      * @param array<string, mixed> $query
      */
     public function listFiscalInvoices(array $query = [], ?RequestOptions $options = null): Page
@@ -362,7 +370,7 @@ final class Billing extends AbstractService
     public function listFiscalInvoicesAll(array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listFiscalInvoices($query, $options),
+            fn (string $marker): Page => $this->listFiscalInvoices(array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
     }

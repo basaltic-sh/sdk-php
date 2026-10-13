@@ -98,7 +98,7 @@ final class Telemetry extends AbstractService
         'getRetainedTelemetryPresence' => [
             'id' => 'getRetainedTelemetryPresence',
             'method' => 'GET',
-            'path' => '/v1/trace-settings/retained-data',
+            'path' => '/v1/retained-data',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -268,12 +268,20 @@ final class Telemetry extends AbstractService
                     'style' => 'form',
                     'explode' => true,
                 ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
             ],
             'body_required' => false,
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'data',
+            'items_key' => 'metric_names',
         ],
         'listMetricNamesPost' => [
             'id' => 'listMetricNamesPost',
@@ -283,8 +291,8 @@ final class Telemetry extends AbstractService
             'required_query' => [],
             'required_headers' => [],
             'query_encoding' => [],
-            'body_required' => false,
-            'content_type' => 'application/x-www-form-urlencoded',
+            'body_required' => true,
+            'content_type' => 'application/json',
             'body_shape' => [
                 'type' => 'object',
             ],
@@ -315,33 +323,25 @@ final class Telemetry extends AbstractService
                     'style' => 'form',
                     'explode' => true,
                 ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
             ],
             'body_required' => false,
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => null,
+            'items_key' => 'series',
         ],
         'listMetricSeriesPost' => [
             'id' => 'listMetricSeriesPost',
             'method' => 'POST',
             'path' => '/v1/metrics/series',
-            'authenticated' => true,
-            'required_query' => [],
-            'required_headers' => [],
-            'query_encoding' => [],
-            'body_required' => false,
-            'content_type' => 'application/x-www-form-urlencoded',
-            'body_shape' => [
-                'type' => 'object',
-            ],
-            'accept' => 'application/json',
-            'items_key' => null,
-        ],
-        'putTraceSettings' => [
-            'id' => 'putTraceSettings',
-            'method' => 'PUT',
-            'path' => '/v1/trace-settings',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -354,6 +354,29 @@ final class Telemetry extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'listTraceSpans' => [
+            'id' => 'listTraceSpans',
+            'method' => 'GET',
+            'path' => '/v1/traces/{trace_id}/spans',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'spans',
+        ],
         'queryMetricsInstant' => [
             'id' => 'queryMetricsInstant',
             'method' => 'GET',
@@ -361,7 +384,6 @@ final class Telemetry extends AbstractService
             'authenticated' => true,
             'required_query' => [
                 'metric',
-                'agg',
             ],
             'required_headers' => [],
             'query_encoding' => [
@@ -404,16 +426,16 @@ final class Telemetry extends AbstractService
             'required_query' => [],
             'required_headers' => [],
             'query_encoding' => [],
-            'body_required' => false,
-            'content_type' => 'application/x-www-form-urlencoded',
+            'body_required' => true,
+            'content_type' => 'application/json',
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'match[]' => [
+                    'match' => [
                         'type' => 'array',
                         'items' => [],
                     ],
-                    'by[]' => [
+                    'by' => [
                         'type' => 'array',
                         'items' => [],
                     ],
@@ -425,11 +447,10 @@ final class Telemetry extends AbstractService
         'queryMetricsRange' => [
             'id' => 'queryMetricsRange',
             'method' => 'GET',
-            'path' => '/v1/metrics/query_range',
+            'path' => '/v1/metrics/query-range',
             'authenticated' => true,
             'required_query' => [
                 'metric',
-                'agg',
                 'start',
                 'end',
             ],
@@ -473,21 +494,21 @@ final class Telemetry extends AbstractService
         'queryMetricsRangePost' => [
             'id' => 'queryMetricsRangePost',
             'method' => 'POST',
-            'path' => '/v1/metrics/query_range',
+            'path' => '/v1/metrics/query-range',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
             'query_encoding' => [],
-            'body_required' => false,
-            'content_type' => 'application/x-www-form-urlencoded',
+            'body_required' => true,
+            'content_type' => 'application/json',
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
-                    'match[]' => [
+                    'match' => [
                         'type' => 'array',
                         'items' => [],
                     ],
-                    'by[]' => [
+                    'by' => [
                         'type' => 'array',
                         'items' => [],
                     ],
@@ -625,6 +646,22 @@ final class Telemetry extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'updateTraceSettings' => [
+            'id' => 'updateTraceSettings',
+            'method' => 'PATCH',
+            'path' => '/v1/trace-settings',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'writeMetrics' => [
             'id' => 'writeMetrics',
             'method' => 'POST',
@@ -705,7 +742,7 @@ final class Telemetry extends AbstractService
     }
 
     /**
-     * Get all spans for a trace
+     * Get a trace
      */
     public function getTrace(string $traceId, ?RequestOptions $options = null): Result
     {
@@ -759,7 +796,7 @@ final class Telemetry extends AbstractService
     }
 
     /**
-     * List the distinct metric names emitted in a time window
+     * List metric names
      * @param array<string, mixed> $query
      */
     public function listMetricNames(array $query = [], ?RequestOptions $options = null): Page
@@ -773,49 +810,71 @@ final class Telemetry extends AbstractService
     public function listMetricNamesAll(array $query = [], ?RequestOptions $options = null): \Generator
     {
         return Page::iterate(
-            fn (string $marker): Page => $this->listMetricNames($query, $options),
+            fn (string $marker): Page => $this->listMetricNames(array_replace($query, ['marker' => $marker]), $options),
             (string) ($query['marker'] ?? ''),
         );
     }
 
     /**
-     * List the distinct metric names emitted in a time window (form body)
-     * @param array<string, mixed>|null $body
+     * List metric names (JSON)
+     * @param array<string, mixed>|\stdClass $body
      */
-    public function listMetricNamesPost(array|null $body = null, ?RequestOptions $options = null): Result
+    public function listMetricNamesPost(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('listMetricNamesPost', [], $body, [], $options);
     }
 
     /**
-     * List distinct label sets for a metric
+     * List metric series
      * @param array<string, mixed> $query
      */
-    public function listMetricSeries(array $query = [], ?RequestOptions $options = null): Result
+    public function listMetricSeries(array $query = [], ?RequestOptions $options = null): Page
     {
-        return $this->result('listMetricSeries', [], null, $query, $options);
+        return $this->page('listMetricSeries', [], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listMetricSeriesAll(array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listMetricSeries(array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
     }
 
     /**
-     * List distinct label sets for a metric (form body)
-     * @param array<string, mixed>|null $body
+     * List metric series (JSON)
+     * @param array<string, mixed>|\stdClass $body
      */
-    public function listMetricSeriesPost(array|null $body = null, ?RequestOptions $options = null): Result
+    public function listMetricSeriesPost(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('listMetricSeriesPost', [], $body, [], $options);
     }
 
     /**
-     * Update the caller account's trace settings
-     * @param array<string, mixed>|\stdClass $body
+     * List spans in a trace
+     * @param array<string, mixed> $query
      */
-    public function putTraceSettings(array|\stdClass $body, ?RequestOptions $options = null): Result
+    public function listTraceSpans(string $traceId, array $query = [], ?RequestOptions $options = null): Page
     {
-        return $this->result('putTraceSettings', [], $body, [], $options);
+        return $this->page('listTraceSpans', ['trace_id' => $traceId], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listTraceSpansAll(string $traceId, array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listTraceSpans($traceId, array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
     }
 
     /**
-     * Instant structured metric query
+     * Run an instant metric query
      * @param array<string, mixed> $query
      */
     public function queryMetricsInstant(array $query = [], ?RequestOptions $options = null): Result
@@ -824,16 +883,16 @@ final class Telemetry extends AbstractService
     }
 
     /**
-     * Instant structured metric query (form body)
-     * @param array<string, mixed>|null $body
+     * Run an instant metric query (JSON)
+     * @param array<string, mixed>|\stdClass $body
      */
-    public function queryMetricsInstantPost(array|null $body = null, ?RequestOptions $options = null): Result
+    public function queryMetricsInstantPost(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('queryMetricsInstantPost', [], $body, [], $options);
     }
 
     /**
-     * Range structured metric query
+     * Run a range metric query
      * @param array<string, mixed> $query
      */
     public function queryMetricsRange(array $query = [], ?RequestOptions $options = null): Result
@@ -842,10 +901,10 @@ final class Telemetry extends AbstractService
     }
 
     /**
-     * Range structured metric query (form body)
-     * @param array<string, mixed>|null $body
+     * Run a range metric query (JSON)
+     * @param array<string, mixed>|\stdClass $body
      */
-    public function queryMetricsRangePost(array|null $body = null, ?RequestOptions $options = null): Result
+    public function queryMetricsRangePost(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('queryMetricsRangePost', [], $body, [], $options);
     }
@@ -875,6 +934,15 @@ final class Telemetry extends AbstractService
     public function updateLogGroup(string $id, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('updateLogGroup', ['id' => $id], $body, [], $options);
+    }
+
+    /**
+     * Update the caller account's trace settings
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function updateTraceSettings(array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('updateTraceSettings', [], $body, [], $options);
     }
 
     /**
