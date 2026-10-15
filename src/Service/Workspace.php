@@ -401,6 +401,20 @@ final class Workspace extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'getAccountOnboarding' => [
+            'id' => 'getAccountOnboarding',
+            'method' => 'GET',
+            'path' => '/v1/accounts/{account_id}/onboarding',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'getAccountResources' => [
             'id' => 'getAccountResources',
             'method' => 'GET',
@@ -1231,6 +1245,20 @@ final class Workspace extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'retryAccountProvisioning' => [
+            'id' => 'retryAccountProvisioning',
+            'method' => 'POST',
+            'path' => '/v1/accounts/{account_id}/onboarding/retry',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'setUserPermissionBoundary' => [
             'id' => 'setUserPermissionBoundary',
             'method' => 'PUT',
@@ -1251,6 +1279,22 @@ final class Workspace extends AbstractService
             'id' => 'updateAccount',
             'method' => 'PATCH',
             'path' => '/v1/accounts/{account_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'updateAccountOnboarding' => [
+            'id' => 'updateAccountOnboarding',
+            'method' => 'PATCH',
+            'path' => '/v1/accounts/{account_id}/onboarding',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -1557,6 +1601,14 @@ final class Workspace extends AbstractService
             true,
             'account',
         );
+    }
+
+    /**
+     * Get shared account setup progress
+     */
+    public function getAccountOnboarding(string $accountId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('getAccountOnboarding', ['account_id' => $accountId], null, [], $options);
     }
 
     /**
@@ -2176,6 +2228,14 @@ final class Workspace extends AbstractService
     }
 
     /**
+     * Resume failed default network provisioning
+     */
+    public function retryAccountProvisioning(string $accountId, ?RequestOptions $options = null): Result
+    {
+        return $this->result('retryAccountProvisioning', ['account_id' => $accountId], null, [], $options);
+    }
+
+    /**
      * Set a user's permission boundary
      * @param array<string, mixed>|\stdClass $body
      */
@@ -2191,6 +2251,15 @@ final class Workspace extends AbstractService
     public function updateAccount(string $accountId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('updateAccount', ['account_id' => $accountId], $body, [], $options);
+    }
+
+    /**
+     * Update shared account guide preferences
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function updateAccountOnboarding(string $accountId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('updateAccountOnboarding', ['account_id' => $accountId], $body, [], $options);
     }
 
     /**

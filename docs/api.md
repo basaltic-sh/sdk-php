@@ -4623,6 +4623,14 @@ Get account
 
 Path arguments, in order: `accountId`.
 
+### `workspace()->getAccountOnboarding()`
+
+Get shared account setup progress
+
+`GET /v1/accounts/{account_id}/onboarding` → `Result`
+
+Path arguments, in order: `accountId`.
+
 ### `workspace()->getAccountResources()`
 
 Check account resource presence
@@ -5023,6 +5031,14 @@ Remove a user's permission boundary
 
 Path arguments, in order: `userId`.
 
+### `workspace()->retryAccountProvisioning()`
+
+Resume failed default network provisioning
+
+`POST /v1/accounts/{account_id}/onboarding/retry` → `Result`
+
+Path arguments, in order: `accountId`.
+
 ### `workspace()->setUserPermissionBoundary()`
 
 Set a user's permission boundary
@@ -5047,6 +5063,21 @@ Body fields:
 
 - `name` (string):
 - `description` (string):
+
+### `workspace()->updateAccountOnboarding()`
+
+Update shared account guide preferences
+
+`PATCH /v1/accounts/{account_id}/onboarding` → `Result`
+
+Path arguments, in order: `accountId`.
+
+Body fields:
+
+- `dismissed` (boolean):
+- `welcome_seen` (boolean):
+- `instance_id` (string):
+- `confirmed_instance_id` (string):
 
 ### `workspace()->updateGroup()`
 
