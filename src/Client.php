@@ -59,6 +59,13 @@ final class Client
         return $service;
     }
 
+    public function email(): Service\Email
+    {
+        $service = $this->services['email'] ??= new Service\Email($this->transport);
+        assert($service instanceof Service\Email);
+        return $service;
+    }
+
     public function iam(): Service\Iam
     {
         $service = $this->services['iam'] ??= new Service\Iam($this->transport);
@@ -87,10 +94,31 @@ final class Client
         return $service;
     }
 
+    public function notifications(): Service\Notifications
+    {
+        $service = $this->services['notifications'] ??= new Service\Notifications($this->transport);
+        assert($service instanceof Service\Notifications);
+        return $service;
+    }
+
+    public function queue(): Service\Queue
+    {
+        $service = $this->services['queue'] ??= new Service\Queue($this->transport);
+        assert($service instanceof Service\Queue);
+        return $service;
+    }
+
     public function quota(): Service\Quota
     {
         $service = $this->services['quota'] ??= new Service\Quota($this->transport);
         assert($service instanceof Service\Quota);
+        return $service;
+    }
+
+    public function registry(): Service\Registry
+    {
+        $service = $this->services['registry'] ??= new Service\Registry($this->transport);
+        assert($service instanceof Service\Registry);
         return $service;
     }
 

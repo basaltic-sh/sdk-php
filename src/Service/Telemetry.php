@@ -18,6 +18,50 @@ final class Telemetry extends AbstractService
     protected const SERVICE = 'telemetry';
     protected const ENDPOINT = 'https://telemetry.{region}.basaltic.sh';
     protected const OPERATIONS = [
+        'createAlert' => [
+            'id' => 'createAlert',
+            'method' => 'POST',
+            'path' => '/v1/alerts',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+                'properties' => [
+                    'expression' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'match' => [
+                                'type' => 'array',
+                                'items' => [],
+                            ],
+                            'by' => [
+                                'type' => 'array',
+                                'items' => [],
+                            ],
+                            'denominator' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'match' => [
+                                        'type' => 'array',
+                                        'items' => [],
+                                    ],
+                                    'by' => [
+                                        'type' => 'array',
+                                        'items' => [],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'createLogGroup' => [
             'id' => 'createLogGroup',
             'method' => 'POST',
@@ -39,6 +83,20 @@ final class Telemetry extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'deleteAlert' => [
+            'id' => 'deleteAlert',
+            'method' => 'DELETE',
+            'path' => '/v1/alerts/{id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'deleteLogGroup' => [
             'id' => 'deleteLogGroup',
             'method' => 'DELETE',
@@ -57,6 +115,20 @@ final class Telemetry extends AbstractService
             'id' => 'deleteTraceSettings',
             'method' => 'DELETE',
             'path' => '/v1/trace-settings',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'getAlert' => [
+            'id' => 'getAlert',
+            'method' => 'GET',
+            'path' => '/v1/alerts/{id}',
             'authenticated' => true,
             'required_query' => [],
             'required_headers' => [],
@@ -217,6 +289,41 @@ final class Telemetry extends AbstractService
             ],
             'accept' => 'application/json',
             'items_key' => null,
+        ],
+        'listAlerts' => [
+            'id' => 'listAlerts',
+            'method' => 'GET',
+            'path' => '/v1/alerts',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [
+                'name' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'crn' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'state' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'limit' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+                'marker' => [
+                    'style' => 'form',
+                    'explode' => true,
+                ],
+            ],
+            'body_required' => false,
+            'content_type' => '',
+            'body_shape' => [],
+            'accept' => 'application/json',
+            'items_key' => 'alerts',
         ],
         'listLogGroups' => [
             'id' => 'listLogGroups',
@@ -625,6 +732,50 @@ final class Telemetry extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
+        'updateAlert' => [
+            'id' => 'updateAlert',
+            'method' => 'PATCH',
+            'path' => '/v1/alerts/{id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
+                'properties' => [
+                    'expression' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'match' => [
+                                'type' => 'array',
+                                'items' => [],
+                            ],
+                            'by' => [
+                                'type' => 'array',
+                                'items' => [],
+                            ],
+                            'denominator' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'match' => [
+                                        'type' => 'array',
+                                        'items' => [],
+                                    ],
+                                    'by' => [
+                                        'type' => 'array',
+                                        'items' => [],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
         'updateLogGroup' => [
             'id' => 'updateLogGroup',
             'method' => 'PATCH',
@@ -679,12 +830,29 @@ final class Telemetry extends AbstractService
     ];
 
     /**
+     * Create a metric alert
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function createAlert(array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('createAlert', [], $body, [], $options);
+    }
+
+    /**
      * Create a log group
      * @param array<string, mixed>|\stdClass $body
      */
     public function createLogGroup(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('createLogGroup', [], $body, [], $options);
+    }
+
+    /**
+     * Delete a metric alert
+     */
+    public function deleteAlert(string $id, ?RequestOptions $options = null): void
+    {
+        $this->discard('deleteAlert', ['id' => $id], null, [], $options);
     }
 
     /**
@@ -701,6 +869,28 @@ final class Telemetry extends AbstractService
     public function deleteTraceSettings(?RequestOptions $options = null): void
     {
         $this->discard('deleteTraceSettings', [], null, [], $options);
+    }
+
+    /**
+     * Get a metric alert
+     */
+    public function getAlert(string $id, ?RequestOptions $options = null): Result
+    {
+        return $this->result('getAlert', ['id' => $id], null, [], $options);
+    }
+
+    /** @param array<string, mixed> $scope */
+    public function getAlertByReference(string $reference, array $scope = [], ?RequestOptions $options = null): Result
+    {
+        unset($scope['name'], $scope['crn'], $scope['marker']);
+        $scope['limit'] = 2;
+        return Reference::resolve(
+            $reference,
+            fn (string $id): Result => $this->getAlert($id, $options),
+            fn (array $filter): Page => $this->listAlerts(array_replace($scope, $filter), $options),
+            true,
+            'alert',
+        );
     }
 
     /**
@@ -773,6 +963,26 @@ final class Telemetry extends AbstractService
     public function ingestSpans(array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('ingestSpans', [], $body, [], $options);
+    }
+
+    /**
+     * List metric alerts
+     * @param array<string, mixed> $query
+     */
+    public function listAlerts(array $query = [], ?RequestOptions $options = null): Page
+    {
+        return $this->page('listAlerts', [], null, $query, $options);
+    }
+
+    /** @param array<string, mixed> $query
+     * @return \Generator<int, mixed>
+     */
+    public function listAlertsAll(array $query = [], ?RequestOptions $options = null): \Generator
+    {
+        return Page::iterate(
+            fn (string $marker): Page => $this->listAlerts(array_replace($query, ['marker' => $marker]), $options),
+            (string) ($query['marker'] ?? ''),
+        );
     }
 
     /**
@@ -925,6 +1135,15 @@ final class Telemetry extends AbstractService
     public function searchTraces(array $query = [], ?RequestOptions $options = null): Result
     {
         return $this->result('searchTraces', [], null, $query, $options);
+    }
+
+    /**
+     * Update a metric alert
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function updateAlert(string $id, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('updateAlert', ['id' => $id], $body, [], $options);
     }
 
     /**

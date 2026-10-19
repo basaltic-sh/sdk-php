@@ -113,22 +113,6 @@ final class Iam extends AbstractService
             'accept' => 'application/json',
             'items_key' => null,
         ],
-        'authorizeOAuthClient' => [
-            'id' => 'authorizeOAuthClient',
-            'method' => 'POST',
-            'path' => '/v1/oauth/authorize',
-            'authenticated' => true,
-            'required_query' => [],
-            'required_headers' => [],
-            'query_encoding' => [],
-            'body_required' => true,
-            'content_type' => 'application/json',
-            'body_shape' => [
-                'type' => 'object',
-            ],
-            'accept' => 'application/json',
-            'items_key' => null,
-        ],
         'createOIDCProvider' => [
             'id' => 'createOIDCProvider',
             'method' => 'POST',
@@ -1423,15 +1407,6 @@ final class Iam extends AbstractService
     public function attachServiceAccountPolicy(string $serviceAccountId, array|\stdClass $body, ?RequestOptions $options = null): void
     {
         $this->discard('attachServiceAccountPolicy', ['service_account_id' => $serviceAccountId], $body, [], $options);
-    }
-
-    /**
-     * Approve a CLI login and issue an authorization code
-     * @param array<string, mixed>|\stdClass $body
-     */
-    public function authorizeOAuthClient(array|\stdClass $body, ?RequestOptions $options = null): Result
-    {
-        return $this->result('authorizeOAuthClient', [], $body, [], $options);
     }
 
     /**

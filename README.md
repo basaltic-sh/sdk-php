@@ -15,7 +15,7 @@ privately to **security@basaltic.sh**, following [SECURITY.md](SECURITY.md).
 Install [basaltic-sh/sdk-php from Packagist](https://packagist.org/packages/basaltic-sh/sdk-php):
 
 ```bash
-composer require basaltic-sh/sdk-php:^0.5
+composer require basaltic-sh/sdk-php:^0.6
 ```
 
 Packagist distributes the source from this repository's versioned release tags.
@@ -106,7 +106,7 @@ Global services do not require or use a region.
 
 ## Services and API reference
 
-The [generated API reference](docs/api.md) lists all 401 operations, positional
+The [generated API reference](docs/api.md) lists all 547 operations, positional
 path arguments, query fields, body fields and required headers.
 
 | Regional | Global |
@@ -118,9 +118,11 @@ path arguments, query fields, body fields and required headers.
 | `certificate()` | `billing()` |
 | `kms()` | `audit()` |
 | `secrets()` | `quota()` |
-| `telemetry()` | |
+| `telemetry()` | `email()` |
+| `notifications()` | `queue()` |
+| `registry()` | |
 
-Database, registry, queue, notifications and email are not part of this release.
+Database is not part of this release.
 The native storage API is included; for S3/SigV4 use an AWS SDK configured for
 the Basaltic S3 endpoint.
 

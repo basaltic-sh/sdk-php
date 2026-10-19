@@ -1018,6 +1018,718 @@ Headers (RequestOptions) fields:
 
 - `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
 
+## Email
+
+### `email()->addSuppressionOverride()`
+
+Add a suppression override address
+
+`POST /v1/configuration-sets/{configuration_set_id}/suppression-overrides` → `Result`
+
+Path arguments, in order: `configurationSetId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `address` (string, required):
+
+### `email()->beginDKIMRotation()`
+
+Begin DKIM key rotation
+
+`POST /v1/identities/{identity_id}/dkim/rotate` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+### `email()->cancelDKIMRotation()`
+
+Cancel in-progress DKIM rotation
+
+`DELETE /v1/identities/{identity_id}/dkim/rotate` → `Result`
+
+Path arguments, in order: `identityId`.
+
+### `email()->createConfigurationSet()`
+
+Create a configuration set
+
+`POST /v1/configuration-sets` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `sending_enabled` (boolean):
+- `tags` (object):
+- `ip_pool` (string): UUID, CRN or account-unique name. Omit to preserve; null detaches the pool.
+- `tracking_open` (boolean):
+- `tracking_click` (boolean):
+- `suppression_overrides` (array):
+
+### `email()->createIPPool()`
+
+Create an IP pool
+
+`POST /v1/ip-pools` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `description` (string):
+
+### `email()->createIdentity()`
+
+Create a sender identity
+
+`POST /v1/identities` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Sender domain (FQDN, lowercase). Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `tags` (object):
+
+### `email()->createRecipientRule()`
+
+Create recipient rule
+
+`POST /v1/identities/{identity_id}/recipient-rules` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Body fields:
+
+- `match_type` (string, required): Exact local part, local-part prefix, or catch-all for this identity. Exact matches take precedence, then the longest prefix, then catch-all.
+- `local_part` (string): Required for exact and prefix; empty or omitted for all.
+- `topic` (string, required): Notifications topic name, UUID or CRN. Requires notifications:Publish on the same-account topic.
+- `enabled` (boolean):
+
+### `email()->createSuppression()`
+
+Add a suppression entry
+
+`POST /v1/suppressions` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `address` (string, required):
+- `description` (string):
+- `expires_at` (string):
+
+### `email()->createTemplate()`
+
+Create a template
+
+`POST /v1/templates` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `subject_template` (string):
+- `body_template` (string, required):
+- `body_type` (string):
+
+### `email()->deleteConfigurationSet()`
+
+Delete a configuration set
+
+`DELETE /v1/configuration-sets/{configuration_set_id}` → `void`
+
+Path arguments, in order: `configurationSetId`.
+
+### `email()->deleteIPPool()`
+
+Delete an IP pool
+
+`DELETE /v1/ip-pools/{ip_pool_id}` → `void`
+
+Path arguments, in order: `ipPoolId`.
+
+### `email()->deleteIdentity()`
+
+Delete an identity
+
+`DELETE /v1/identities/{identity_id}` → `void`
+
+Path arguments, in order: `identityId`.
+
+### `email()->deleteRecipientRule()`
+
+Delete recipient rule
+
+`DELETE /v1/identities/{identity_id}/recipient-rules/{rule_id}` → `void`
+
+Path arguments, in order: `identityId`, `ruleId`.
+
+### `email()->deleteSuppression()`
+
+Delete suppression
+
+`DELETE /v1/suppressions/{suppression_id}` → `void`
+
+Path arguments, in order: `suppressionId`.
+
+### `email()->deleteTemplate()`
+
+Delete a template
+
+`DELETE /v1/templates/{template_id}` → `void`
+
+Path arguments, in order: `templateId`.
+
+### `email()->describeConfigurationSet()`
+
+Describe a configuration set
+
+`GET /v1/configuration-sets/{configuration_set_id}` → `Result`
+
+Path arguments, in order: `configurationSetId`.
+
+### `email()->describeDedicatedIP()`
+
+Describe a dedicated IP
+
+`GET /v1/dedicated-ips/{dedicated_ip_id}` → `Result`
+
+Path arguments, in order: `dedicatedIpId`.
+
+### `email()->describeIPPool()`
+
+Describe an IP pool
+
+`GET /v1/ip-pools/{ip_pool_id}` → `Result`
+
+Path arguments, in order: `ipPoolId`.
+
+### `email()->describeIdentity()`
+
+Describe an identity
+
+`GET /v1/identities/{identity_id}` → `Result`
+
+Path arguments, in order: `identityId`.
+
+### `email()->describeReceivedMessage()`
+
+Get received message metadata
+
+`GET /v1/received-messages/{message_id}` → `Result`
+
+Path arguments, in order: `messageId`.
+
+### `email()->describeRecipientRule()`
+
+Get recipient rule
+
+`GET /v1/identities/{identity_id}/recipient-rules/{rule_id}` → `Result`
+
+Path arguments, in order: `identityId`, `ruleId`.
+
+### `email()->describeSentMessage()`
+
+Describe a sent message
+
+`GET /v1/sent-messages/{message_id}` → `Result`
+
+Path arguments, in order: `messageId`.
+
+### `email()->describeSuppression()`
+
+Get suppression
+
+`GET /v1/suppressions/{suppression_id}` → `Result`
+
+Path arguments, in order: `suppressionId`.
+
+### `email()->describeTemplate()`
+
+Describe a template
+
+`GET /v1/templates/{template_id}` → `Result`
+
+Path arguments, in order: `templateId`.
+
+### `email()->downloadReceivedAttachment()`
+
+Download received attachment
+
+`GET /v1/received-messages/{message_id}/attachments/{attachment_id}` → `ResponseInterface`
+
+Path arguments, in order: `messageId`, `attachmentId`.
+
+### `email()->downloadReceivedMessage()`
+
+Download received message
+
+`GET /v1/received-messages/{message_id}/raw` → `ResponseInterface`
+
+Path arguments, in order: `messageId`.
+
+### `email()->downloadSentAttachment()`
+
+Download sent attachment
+
+`GET /v1/sent-messages/{message_id}/attachments/{attachment_id}` → `ResponseInterface`
+
+Path arguments, in order: `messageId`, `attachmentId`.
+
+### `email()->downloadSentMessage()`
+
+Download sent message
+
+`GET /v1/sent-messages/{message_id}/raw` → `ResponseInterface`
+
+Path arguments, in order: `messageId`.
+
+### `email()->finalizeDKIMRotation()`
+
+Finalize DKIM key rotation
+
+`POST /v1/identities/{identity_id}/dkim/rotate/finalize` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+### `email()->getReceivedMessageContent()`
+
+Get received message content
+
+`GET /v1/received-messages/{message_id}/content` → `Result`
+
+Path arguments, in order: `messageId`.
+
+### `email()->getReceivingConfiguration()`
+
+Get receiving configuration
+
+`GET /v1/identities/{identity_id}/receiving` → `Result`
+
+Path arguments, in order: `identityId`.
+
+### `email()->getSentMessageContent()`
+
+Get sent message content
+
+`GET /v1/sent-messages/{message_id}/content` → `Result`
+
+Path arguments, in order: `messageId`.
+
+### `email()->getSentMessageEngagement()`
+
+Sent message engagement
+
+`GET /v1/sent-messages/{message_id}/engagement` → `Result`
+
+Path arguments, in order: `messageId`.
+
+### `email()->listConfigurationSets()`
+
+List configuration sets
+
+`GET /v1/configuration-sets` → `Page`
+
+Query fields:
+
+- `name` (string): Exact immutable account-scoped name, combined with all other filters.
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listDMARCReports()`
+
+List DMARC report records
+
+`GET /v1/identities/{identity_id}/dmarc-reports` → `Page`
+
+Path arguments, in order: `identityId`.
+
+Query fields:
+
+- `marker` (string):
+- `limit` (integer):
+- `from` (string):
+- `to` (string):
+
+### `email()->listDedicatedIPs()`
+
+List dedicated IPs
+
+`GET /v1/dedicated-ips` → `Page`
+
+Query fields:
+
+- `crn` (string): Exact dedicated-IP CRN, filtered before pagination. Foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+- `ip_pool` (string):
+
+### `email()->listIPPools()`
+
+List IP pools
+
+`GET /v1/ip-pools` → `Page`
+
+Query fields:
+
+- `name` (string): Exact immutable account-scoped name, combined with all other filters.
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listIdentities()`
+
+List sender identities
+
+`GET /v1/identities` → `Page`
+
+Query fields:
+
+- `name` (string): Exact immutable account-scoped name, combined with all other filters.
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listReceivedMessages()`
+
+List received messages
+
+`GET /v1/received-messages` → `Page`
+
+Query fields:
+
+- `identity` (string): Receiving identity UUID, CRN or name.
+- `recipient` (string):
+- `review_reason` (string):
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listRecipientRules()`
+
+List recipient rules
+
+`GET /v1/identities/{identity_id}/recipient-rules` → `Page`
+
+Path arguments, in order: `identityId`.
+
+Query fields:
+
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listRejections()`
+
+List API-side send rejections
+
+`GET /v1/rejections` → `Page`
+
+Query fields:
+
+- `crn` (string): Exact rejection event CRN. Foreign scope or a missing event returns an empty page.
+- `before` (string): RFC 3339 timestamp — return only rejections older than this. Omit to start from the newest. This is what `meta.marker` carries.
+- `limit` (integer):
+- `identity` (string): Identity UUID, CRN or account-unique name; missing or foreign references return empty results.
+- `reason` (string): Narrow to one rejection reason.
+
+### `email()->listSentMessages()`
+
+List sent messages
+
+`GET /v1/sent-messages` → `Page`
+
+Query fields:
+
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+- `identity` (string): Identity UUID, CRN or account-unique name; missing or foreign references return empty results.
+- `status` (string):
+- `recipient` (string):
+
+### `email()->listSuppressions()`
+
+List suppression entries
+
+`GET /v1/suppressions` → `Page`
+
+Query fields:
+
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `reason` (string): Return only entries put on the list this way. An unknown value is not rejected — it simply matches nothing, so the page comes back empty rather than 400.
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->listTemplates()`
+
+List templates
+
+`GET /v1/templates` → `Page`
+
+Query fields:
+
+- `name` (string): Exact immutable account-scoped name, combined with all other filters.
+- `crn` (string): Exact CRN filter. Malformed CRNs return 400; foreign or mismatched CRNs return an empty page.
+- `marker` (string):
+- `limit` (integer):
+
+### `email()->releaseDedicatedIP()`
+
+Release a dedicated IP
+
+`DELETE /v1/dedicated-ips/{dedicated_ip_id}` → `void`
+
+Path arguments, in order: `dedicatedIpId`.
+
+### `email()->removeSuppressionOverride()`
+
+Remove a suppression override address
+
+`DELETE /v1/configuration-sets/{configuration_set_id}/suppression-overrides/{address}` → `Result`
+
+Path arguments, in order: `configurationSetId`, `address`.
+
+### `email()->requestDedicatedIP()`
+
+Request a dedicated IP
+
+`POST /v1/dedicated-ips` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `ip_pool` (string): UUID, CRN or account-unique pool name; empty leaves unassigned.
+
+### `email()->sendMessage()`
+
+Send a message
+
+`POST /v1/sent-messages` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `attachments_bucket` (string): Bucket UUID, CRN or name for attachments embedded in raw MIME. Objects are written under email/{identity_id}/sent/{message_id}/. Separate attachments entries reference existing bucket objects.
+- `attachments` (array): Bucket objects to attach. GetObject permission is required; version and checksum are pinned at acceptance.
+- `identity` (string, required): UUID, CRN or account-unique name.
+- `from` (string, required):
+- `to` (array, required):
+- `subject` (string): Subject for text/HTML content. For raw or template content, the subject is supplied by that content.
+- `configuration_set` (string): UUID, CRN or account-unique name.
+- `content` (object, required): Exactly one content mode: text and/or html; raw; or template with optional template_data. Text is never guessed to be HTML.
+
+### `email()->sendMessageBatch()`
+
+Send message batch
+
+`POST /v1/sent-messages/batch` → `Result`
+
+Body fields:
+
+- `messages` (array, required):
+
+### `email()->setBIMI()`
+
+Set BIMI logo / VMC URLs
+
+`PATCH /v1/identities/{identity_id}/bimi` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Body fields:
+
+- `logo_url` (string): HTTPS SVG Tiny PS URL; null clears BIMI.
+- `vmc_url` (string): Optional HTTPS VMC URL; omission preserves it and null removes the certificate.
+
+### `email()->setMailFromDomain()`
+
+Set custom MAIL FROM domain
+
+`PATCH /v1/identities/{identity_id}/mail-from-domain` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Body fields:
+
+- `domain` (string): Mail-from domain; null clears the binding.
+
+### `email()->updateConfigurationSet()`
+
+Update a configuration set
+
+`PATCH /v1/configuration-sets/{configuration_set_id}` → `Result`
+
+Path arguments, in order: `configurationSetId`.
+
+Body fields:
+
+- `sending_enabled` (boolean):
+- `suppression_overrides` (array):
+- `ip_pool` (string): UUID, CRN or account-unique name. Omit to preserve; null detaches the pool.
+- `tracking_open` (boolean):
+- `tracking_click` (boolean):
+- `tags` (object):
+
+### `email()->updateDedicatedIP()`
+
+Update a dedicated IP
+
+`PATCH /v1/dedicated-ips/{dedicated_ip_id}` → `Result`
+
+Path arguments, in order: `dedicatedIpId`.
+
+Body fields:
+
+- `warmup_status` (string):
+- `ip_pool` (string): UUID, CRN or account-unique pool name. Null detaches; omission leaves unchanged.
+
+### `email()->updateIPPool()`
+
+Update an IP pool
+
+`PATCH /v1/ip-pools/{ip_pool_id}` → `Result`
+
+Path arguments, in order: `ipPoolId`.
+
+Body fields:
+
+- `description` (string):
+
+### `email()->updateIdentity()`
+
+Update identity
+
+`PATCH /v1/identities/{identity_id}` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Body fields:
+
+- `tags` (object):
+
+### `email()->updateReceivingConfiguration()`
+
+Update receiving configuration
+
+`PATCH /v1/identities/{identity_id}/receiving` → `void`
+
+Path arguments, in order: `identityId`.
+
+Body fields:
+
+- `enabled` (boolean):
+- `attachments_bucket` (string): Same-account, same-region bucket name, UUID or CRN. Omission preserves the current bucket; null clears it while receiving is disabled. Saving requires storage PutObject and GetObject permission under email/{identity_id}/ in this bucket. Changing the bucket affects new messages only.
+
+### `email()->updateRecipientRule()`
+
+Update recipient rule
+
+`PATCH /v1/identities/{identity_id}/recipient-rules/{rule_id}` → `Result`
+
+Path arguments, in order: `identityId`, `ruleId`.
+
+Body fields:
+
+- `match_type` (string): Exact local part, local-part prefix, or catch-all for this identity. Exact matches take precedence, then the longest prefix, then catch-all.
+- `local_part` (string): Required for exact and prefix; empty or omitted for all.
+- `topic` (string): Notifications topic name, UUID or CRN. Requires notifications:Publish on the same-account topic.
+- `enabled` (boolean):
+
+### `email()->updateSuppression()`
+
+Update suppression
+
+`PATCH /v1/suppressions/{suppression_id}` → `Result`
+
+Path arguments, in order: `suppressionId`.
+
+Body fields:
+
+- `description` (string):
+- `expires_at` (string): Null makes the suppression permanent; omission preserves its expiry.
+
+### `email()->updateTemplate()`
+
+Update a template
+
+`PATCH /v1/templates/{template_id}` → `Result`
+
+Path arguments, in order: `templateId`.
+
+Body fields:
+
+- `subject_template` (string):
+- `body_template` (string):
+- `body_type` (string):
+
+### `email()->verifyBIMI()`
+
+Verify BIMI logo (+ optional VMC)
+
+`POST /v1/identities/{identity_id}/bimi/verify` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+### `email()->verifyIdentity()`
+
+Trigger DNS verification
+
+`POST /v1/identities/{identity_id}/verify` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+### `email()->verifyMailFromDomain()`
+
+Verify custom MAIL FROM domain MX
+
+`POST /v1/identities/{identity_id}/mail-from-domain/verify` → `Result`
+
+Path arguments, in order: `identityId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
 ## Iam
 
 ### `iam()->assumeRole()`
@@ -1076,21 +1788,6 @@ Headers (RequestOptions) fields:
 Body fields:
 
 - `policy` (string, required): Account policy UUID, immutable name in the selected account, or account-qualified IAM CRN. Shared system policies use crn:iam:::policy/<name>. CRNs select one namespace without fallback.
-
-### `iam()->authorizeOAuthClient()`
-
-Approve a CLI login and issue an authorization code
-
-`POST /v1/oauth/authorize` → `Result`
-
-Body fields:
-
-- `client_id` (string, required): The registered client being approved.
-- `redirect_uri` (string, required): For the CLI this must be `urn:ietf:wg:oauth:2.0:oob` — the out-of-band pseudo-redirect, meaning the code is DISPLAYED rather than delivered anywhere. Nothing else is accepted for that client. Out-of-band because a redirect assumes the browser and the client are on the same machine, which is false for anyone signing in on a server they reach over SSH. What makes redemption safe is PKCE, not the delivery address.
-- `code_challenge` (string, required): Base64url SHA-256 of the client's PKCE verifier, without padding.
-- `code_challenge_method` (string, required): S256 only. `plain` is refused rather than merely discouraged: whoever intercepts the code also saw the challenge, so a plain challenge protects nothing.
-- `state` (string): Opaque value echoed back on the redirect, unchanged. The client generated it and compares it on return.
-- `organization` (string, required): Organization UUID to select for the session. Display names are not accepted. The signed-in user must be a member.
 
 ### `iam()->createOIDCProvider()`
 
@@ -3278,6 +3975,453 @@ Body fields:
 - `description` (string):
 - `tags` (object):
 
+## Notifications
+
+### `notifications()->createTopic()`
+
+Create a topic
+
+`POST /v1/topics` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): 1-256 characters of letters, digits, dot, dash, or underscore. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `display_name` (string):
+- `delivery_policy` (object): Retry behaviour. Omitted fields fall back to the topic's policy, then to platform defaults (6 attempts, 20s to 20m exponential backoff with jitter, 15s per-request timeout). A subscription's policy is layered on its topic's field by field, so overriding only `max_attempts` keeps the topic's backoff curve.
+- `tags` (object):
+
+### `notifications()->deleteTopic()`
+
+Delete a topic
+
+`DELETE /v1/topics/{topic_id}` → `void`
+
+Path arguments, in order: `topicId`.
+
+### `notifications()->deleteTopicPolicy()`
+
+Delete the topic's resource policy
+
+`DELETE /v1/topics/{topic_id}/policy` → `void`
+
+Path arguments, in order: `topicId`.
+
+### `notifications()->describeMessage()`
+
+Describe a published notification
+
+`GET /v1/topics/{topic_id}/messages/{message_id}` → `Result`
+
+Path arguments, in order: `topicId`, `messageId`.
+
+### `notifications()->describeSubscription()`
+
+Describe a subscription
+
+`GET /v1/topics/{topic_id}/subscriptions/{subscription_id}` → `Result`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+### `notifications()->describeTopic()`
+
+Describe a topic
+
+`GET /v1/topics/{topic_id}` → `Result`
+
+Path arguments, in order: `topicId`.
+
+### `notifications()->getSubscriptionSigningSecret()`
+
+Read the webhook signing secret
+
+`GET /v1/topics/{topic_id}/subscriptions/{subscription_id}/signing-secret` → `Result`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+### `notifications()->getTopicPolicy()`
+
+Read the topic's resource policy
+
+`GET /v1/topics/{topic_id}/policy` → `Result`
+
+Path arguments, in order: `topicId`.
+
+### `notifications()->listDeliveries()`
+
+List delivery records
+
+`GET /v1/topics/{topic_id}/deliveries` → `Page`
+
+Path arguments, in order: `topicId`.
+
+Query fields:
+
+- `crn` (string): Exact message/UUID/delivery/UUID identity. Foreign or mismatched CRNs return an empty page; malformed CRNs are invalid.
+- `message` (string): Restrict to one published message. Resolved before the listing runs, so an unknown id is a 404 rather than an empty page. Message accepts UUID or CRN, never a bare name.
+- `subscription` (string): Restrict to one subscription by UUID or nested topic/name/subscription/UUID CRN. Bare names are invalid.
+- `status` (string):
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `notifications()->listMessages()`
+
+List messages
+
+`GET /v1/topics/{topic_id}/messages` → `Page`
+
+Path arguments, in order: `topicId`.
+
+Query fields:
+
+- `crn` (string): Exact message CRN. Foreign identities return an empty page; malformed CRNs are invalid.
+- `fanout_state` (string):
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `notifications()->listSubscriptions()`
+
+List subscriptions
+
+`GET /v1/topics/{topic_id}/subscriptions` → `Page`
+
+Path arguments, in order: `topicId`.
+
+Query fields:
+
+- `crn` (string): Exact nested topic/name/subscription/UUID CRN; intersects the parent topic and status. Foreign or mismatched CRNs return an empty page, except an authorized foreign topic parent may identify a caller-owned subscription. No name filter exists.
+- `status` (string):
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `notifications()->listTopics()`
+
+List topics
+
+`GET /v1/topics` → `Page`
+
+Query fields:
+
+- `name` (string): Exact immutable topic name in the caller account; intersects crn.
+- `crn` (string): Exact notifications/topic CRN; foreign or mismatched CRNs return an empty page.
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `notifications()->publish()`
+
+Publish a notification
+
+`POST /v1/topics/{topic_id}/publish` → `Result`
+
+Path arguments, in order: `topicId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `subject` (string): Used as the email subject. No line breaks.
+- `message` (string, required): The payload. Up to 256 KiB.
+- `message_structure` (string): Omit to deliver `message` verbatim to every protocol. Set to `json` to have `message` read as an object of protocol keys (`default`, `email`, `https`, `http`), letting one publish carry a different payload per transport. A `default` key is required — it is what a protocol with no explicit entry gets.
+- `attributes` (object): Typed attributes carried with a notification and matched against subscription filter policies. At most 20 attributes; values at most 1024 bytes. Binary attributes are not accepted — they cannot be filtered on.
+
+### `notifications()->publishBatch()`
+
+Publish up to 10 notifications
+
+`POST /v1/topics/{topic_id}/publish-batch` → `Result`
+
+Path arguments, in order: `topicId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `entries` (array, required):
+
+### `notifications()->putTopicPolicy()`
+
+Set the topic's resource policy
+
+`PUT /v1/topics/{topic_id}/policy` → `Result`
+
+Path arguments, in order: `topicId`.
+
+Body fields:
+
+- `document` (object, required): pkg/policy.PolicyDocument serialization, the same engine and statement shape as bucket policies. Declared opaque here so the spec doesn't track schema changes inside the policy engine.
+
+### `notifications()->resendConfirmation()`
+
+Re-send the confirmation handshake
+
+`POST /v1/topics/{topic_id}/subscriptions/{subscription_id}/resend-confirmation` → `Result`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+### `notifications()->rotateSubscriptionSigningSecret()`
+
+Rotate the webhook signing secret
+
+`POST /v1/topics/{topic_id}/subscriptions/{subscription_id}/signing-secret/rotate` → `Result`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+### `notifications()->subscribe()`
+
+Subscribe an endpoint to a topic
+
+`POST /v1/topics/{topic_id}/subscriptions` → `Result`
+
+Path arguments, in order: `topicId`.
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `protocol` (string, required):
+- `endpoint` (string, required): An email address; an http/https URL whose scheme matches the protocol and resolves to a publicly-routable address; or, for `queue`, a queue UUID, CRN or exact name in the subscriber account and serving region. Queue targets are stored and returned as canonical CRNs. A `queue` subscription skips the confirmation handshake and is created already confirmed. The handshake exists to prove that whoever controls the endpoint consents to receive, which is necessary for an address or a URL you may not own. A queue is your own resource, so consent is established instead by requiring `queue:SendMessage` on it at subscribe time — an authorization decision rather than a demonstration of reachability.
+- `raw_message_delivery` (boolean): http/https only.
+- `filter_policy` (object): Matches publication attributes, not fields inside the message body. Every named attribute must match at least one alternative (AND across names, OR within each array). Names and string comparisons are case-sensitive. An omitted or empty policy matches every message. Alternatives are exact strings or numbers, or single-operator objects: `{"prefix": "order."}`, `{"suffix": ".failed"}`, `{"anything-but": ["debug", "trace"]}`, `{"exists": true}`, `{"exists": false}`, or `{"numeric": [">=", 100, "<", 1000]}`. Prefix and suffix values must be nonempty. `anything-but` accepts one string or number, or a list of 1–50 such values. Only `exists: false` matches an absent attribute. Exclusion also requires presence. Numeric operators are `=`, `<`, `<=`, `>`, and `>=`; every operator/number pair in one numeric matcher must succeed. Attribute values that cannot be parsed as numbers do not match. Bare numeric alternatives compare string representations; use `numeric` for numeric equality, such as matching both "100" and "100.0". At most 20 nonblank attribute names and 1–50 alternatives per name. Each operator object has exactly one operator. Wildcards, regular expressions, body filtering, and nested operators are not supported. PATCH replaces the entire policy; `{}` clears it and omission preserves it. See [Filter policies](/notifications/filter-policies) for worked examples.
+- `delivery_policy` (object): Retry behaviour. Omitted fields fall back to the topic's policy, then to platform defaults (6 attempts, 20s to 20m exponential backoff with jitter, 15s per-request timeout). A subscription's policy is layered on its topic's field by field, so overriding only `max_attempts` keeps the topic's backoff curve.
+- `redrive_policy` (object): Names a queue in the subscriber's own account that receives each terminally failed delivery — the full original notification plus a `failure` block (delivery id, endpoint, attempts, last error, status code) — as a `delivery_failure` message. Without one, terminal failures remain visible in delivery records and Telemetry metrics. The caller must hold `queue:SendMessage` on the target when the policy is set: writes happen later with no principal present, so consent is established up front, exactly as for a `protocol=queue` endpoint. For a `queue` subscription the target must differ from the endpoint queue.
+- `tags` (object):
+
+### `notifications()->unsubscribe()`
+
+Unsubscribe
+
+`DELETE /v1/topics/{topic_id}/subscriptions/{subscription_id}` → `void`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+### `notifications()->updateSubscription()`
+
+Update mutable subscription settings
+
+`PATCH /v1/topics/{topic_id}/subscriptions/{subscription_id}` → `Result`
+
+Path arguments, in order: `topicId`, `subscriptionId`.
+
+Body fields:
+
+- `raw_message_delivery` (boolean):
+- `filter_policy` (object): Matches publication attributes, not fields inside the message body. Every named attribute must match at least one alternative (AND across names, OR within each array). Names and string comparisons are case-sensitive. An omitted or empty policy matches every message. Alternatives are exact strings or numbers, or single-operator objects: `{"prefix": "order."}`, `{"suffix": ".failed"}`, `{"anything-but": ["debug", "trace"]}`, `{"exists": true}`, `{"exists": false}`, or `{"numeric": [">=", 100, "<", 1000]}`. Prefix and suffix values must be nonempty. `anything-but` accepts one string or number, or a list of 1–50 such values. Only `exists: false` matches an absent attribute. Exclusion also requires presence. Numeric operators are `=`, `<`, `<=`, `>`, and `>=`; every operator/number pair in one numeric matcher must succeed. Attribute values that cannot be parsed as numbers do not match. Bare numeric alternatives compare string representations; use `numeric` for numeric equality, such as matching both "100" and "100.0". At most 20 nonblank attribute names and 1–50 alternatives per name. Each operator object has exactly one operator. Wildcards, regular expressions, body filtering, and nested operators are not supported. PATCH replaces the entire policy; `{}` clears it and omission preserves it. See [Filter policies](/notifications/filter-policies) for worked examples.
+- `delivery_policy` (object): Retry behaviour. Omitted fields fall back to the topic's policy, then to platform defaults (6 attempts, 20s to 20m exponential backoff with jitter, 15s per-request timeout). A subscription's policy is layered on its topic's field by field, so overriding only `max_attempts` keeps the topic's backoff curve.
+- `redrive_policy` (object): Omitted leaves the dead-letter queue unchanged. Present with an empty `dead_letter_queue` clears it. Setting a new target re-checks `queue:SendMessage` on it.
+- `tags` (object):
+
+### `notifications()->updateTopic()`
+
+Update mutable topic metadata
+
+`PATCH /v1/topics/{topic_id}` → `Result`
+
+Path arguments, in order: `topicId`.
+
+Body fields:
+
+- `display_name` (string):
+- `delivery_policy` (object): Retry behaviour. Omitted fields fall back to the topic's policy, then to platform defaults (6 attempts, 20s to 20m exponential backoff with jitter, 15s per-request timeout). A subscription's policy is layered on its topic's field by field, so overriding only `max_attempts` keeps the topic's backoff curve.
+- `tags` (object):
+
+## Queue
+
+### `queue()->changeMessageVisibility()`
+
+Extend or shorten a lease
+
+`POST /v1/queues/{queue_id}/messages/visibility` → `void`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `receipt_handle` (string, required):
+- `visibility_timeout_seconds` (integer, required): Measured from now, not from the original lease. 0 releases the message immediately.
+
+### `queue()->changeMessageVisibilityBatch()`
+
+Extend or shorten up to ten leases
+
+`POST /v1/queues/{queue_id}/messages/visibility-batch` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `entries` (array, required):
+
+### `queue()->createQueue()`
+
+Create a queue
+
+`POST /v1/queues` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Letters, digits, dot, dash, or underscore, starting with a letter or digit. A name ending in `.fifo` creates a FIFO queue. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `visibility_timeout_seconds` (integer):
+- `message_retention_seconds` (integer):
+- `max_message_bytes` (integer):
+- `delay_seconds` (integer):
+- `receive_wait_time_seconds` (integer):
+- `kms_data_key_reuse_period_seconds` (integer):
+- `content_based_deduplication` (boolean): FIFO queues only.
+- `kms_key` (string): KMS key UUID, CRN or account-scoped name. Omit to use the platform key.
+- `redrive_policy` (object): Target queue UUID, CRN or account-scoped name, resolved once and stored as an immutable UUID binding. Must be owned by this account, in this region, of the same kind, and different from the source queue. Invalid syntax, type or region returns 400; missing or foreign targets return 404. No lookup fallback is performed.
+- `tags` (object):
+
+### `queue()->deleteMessage()`
+
+Delete a leased message
+
+`DELETE /v1/queues/{queue_id}/messages` → `void`
+
+Path arguments, in order: `queueId`.
+
+Query fields:
+
+- `receipt_handle` (string, required): The handle returned by the receive that leased this message.
+
+### `queue()->deleteMessageBatch()`
+
+Delete up to ten leased messages
+
+`POST /v1/queues/{queue_id}/messages/delete-batch` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `entries` (array, required):
+
+### `queue()->deleteQueue()`
+
+Delete a queue
+
+`DELETE /v1/queues/{queue_id}` → `void`
+
+Path arguments, in order: `queueId`.
+
+### `queue()->describeQueue()`
+
+Describe a queue
+
+`GET /v1/queues/{queue_id}` → `Result`
+
+Path arguments, in order: `queueId`.
+
+### `queue()->listQueues()`
+
+List queues
+
+`GET /v1/queues` → `Page`
+
+Query fields:
+
+- `name` (string): Exact account-scoped queue name. Intersects with crn when both are supplied.
+- `crn` (string): Exact queue CRN. Malformed, foreign-account or mismatched service, type or region returns an empty page. Intersects with name.
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `queue()->peekMessages()`
+
+Peek at a queue's messages
+
+`GET /v1/queues/{queue_id}/messages` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Query fields:
+
+- `crn` (string): Exact message CRN under this queue. Foreign or mismatched CRNs select an empty page before pagination; malformed CRNs return 400.
+- `visibility` (string): Restrict the peek to one population. `available` can be received now; `in_flight` is leased by a consumer; `delayed` has never been delivered and its send-time delay has not elapsed.
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return. A larger value is clamped to the maximum rather than rejected, so page until `meta.has_more` is false.
+
+### `queue()->purgeQueue()`
+
+Delete every message on a queue
+
+`POST /v1/queues/{queue_id}/purge` → `Result`
+
+Path arguments, in order: `queueId`.
+
+### `queue()->receiveMessages()`
+
+Lease messages
+
+`POST /v1/queues/{queue_id}/messages/receive` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `max_messages` (integer): How many messages to lease. Fewer may be returned even when more are available.
+- `visibility_timeout_seconds` (integer): Overrides the queue's default for this lease only.
+- `wait_time_seconds` (integer): Block up to this long for a message rather than returning empty. Defaults to the queue's receive_wait_time_seconds.
+
+### `queue()->sendMessage()`
+
+Send a message
+
+`POST /v1/queues/{queue_id}/messages` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `body` (string, required): The payload. Counted against the queue's max_message_bytes together with the attributes.
+- `attributes` (object): Typed attributes carried alongside the body. At most 20; values at most 1024 characters. `Binary` values are standard base64. The queue never coerces a value — it only checks the value is representable as the declared type.
+- `delay_seconds` (integer): Overrides the queue's default for this message. Rejected on FIFO queues, where it would let a later message become visible before an earlier one in the same group.
+- `message_group_id` (string): Required on FIFO queues, rejected on standard ones. Messages sharing a group are delivered in order, and a group's next message is withheld while an earlier one is in flight.
+- `message_deduplication_id` (string): FIFO only. A repeat within five minutes is suppressed and the original message's id is returned. Omit on a queue with `content_based_deduplication` to derive it from the body.
+
+### `queue()->sendMessageBatch()`
+
+Send up to ten messages
+
+`POST /v1/queues/{queue_id}/messages/batch` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `entries` (array, required):
+
+### `queue()->updateQueue()`
+
+Update queue attributes
+
+`PATCH /v1/queues/{queue_id}` → `Result`
+
+Path arguments, in order: `queueId`.
+
+Body fields:
+
+- `visibility_timeout_seconds` (integer):
+- `message_retention_seconds` (integer):
+- `max_message_bytes` (integer):
+- `delay_seconds` (integer):
+- `receive_wait_time_seconds` (integer):
+- `kms_data_key_reuse_period_seconds` (integer):
+- `redrive_policy` (object): Omit to keep the current policy; null removes it. An object replaces the policy.
+- `kms_key` (string): KMS key UUID, CRN or account-scoped name. Omit to keep the current key; null restores the platform key. Existing messages keep the key that sealed them.
+- `tags` (object):
+
 ## Quota
 
 ### `quota()->listQuotas()`
@@ -3289,6 +4433,284 @@ List quotas
 Query fields:
 
 - `region` (string): Region to filter regional quotas by. Omit for global only.
+
+## Registry
+
+### `registry()->batchDeleteImage()`
+
+Delete images
+
+`POST /v1/repositories/{repository_id}/images/batch-delete` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Body fields:
+
+- `digests` (array): Removes the manifest AND every tag pointing at it.
+- `tags` (array): Removes only the tag. The manifest survives, untagged.
+
+### `registry()->createPullThroughCacheRule()`
+
+Create a pull-through cache rule
+
+`POST /v1/pull-through-cache-rules` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `prefix` (string, required): One or two lowercase repository-name components. It becomes the leading path of every repository the rule creates, so it has to be a name a client can pull.
+- `upstream_registry` (string, required): A hostname with an optional port. `https://` is accepted and stripped; anything else is refused, because the connection can carry a credential.
+- `upstream_prefix` (string): Optional path prepended upstream.
+- `upstream_username` (string): Optional. Worth setting even against a public registry: an authenticated Docker Hub pull draws on a far larger rate-limit budget than an anonymous one.
+- `upstream_secret` (string): The password or token. Write-only — sealed at rest and never returned. Required with `upstream_username`, and refused without it: a half-specified credential produces an anonymous pull that silently draws on the small budget.
+
+### `registry()->createRepository()`
+
+Create a repository
+
+`POST /v1/repositories` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `tag_mutability` (string):
+- `deletion_protection` (boolean):
+- `tags` (object):
+
+### `registry()->deleteEncryptionConfiguration()`
+
+Delete encryption configuration
+
+`DELETE /v1/encryption-configuration` → `void`
+
+### `registry()->deleteLifecyclePolicy()`
+
+Delete the lifecycle policy
+
+`DELETE /v1/repositories/{repository_id}/lifecycle-policy` → `void`
+
+Path arguments, in order: `repositoryId`.
+
+### `registry()->deletePullThroughCacheRule()`
+
+Delete a pull-through cache rule
+
+`DELETE /v1/pull-through-cache-rules/{prefix}` → `void`
+
+Path arguments, in order: `prefix`.
+
+### `registry()->deleteRepository()`
+
+Delete a repository
+
+`DELETE /v1/repositories/{repository_id}` → `void`
+
+Path arguments, in order: `repositoryId`.
+
+Query fields:
+
+- `force` (boolean): Delete the repository even though it still contains images.
+
+### `registry()->deleteRepositoryPolicy()`
+
+Delete the repository policy
+
+`DELETE /v1/repositories/{repository_id}/policy` → `void`
+
+Path arguments, in order: `repositoryId`.
+
+### `registry()->describeImage()`
+
+Describe an image
+
+`GET /v1/repositories/{repository_id}/images/{image_reference}` → `Result`
+
+Path arguments, in order: `repositoryId`, `imageReference`.
+
+### `registry()->describeImages()`
+
+List images
+
+`GET /v1/repositories/{repository_id}/images` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Query fields:
+
+- `tag_status` (string): Restrict to one population. `untagged` finds the residue of moved tags, which is usually what fills a repository up.
+- `tag_prefix` (string): Return only images carrying a tag with this prefix.
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return.
+
+### `registry()->describePullThroughCacheRule()`
+
+Get a pull-through cache rule
+
+`GET /v1/pull-through-cache-rules/{prefix}` → `Result`
+
+Path arguments, in order: `prefix`.
+
+### `registry()->describePullThroughCacheRules()`
+
+List pull-through cache rules
+
+`GET /v1/pull-through-cache-rules` → `Result`
+
+Query fields:
+
+- `name` (string): Exact, account-scoped immutable repository name or cache-rule prefix. Slash-bearing names are accepted. Intersects with `crn` before pagination.
+- `crn` (string): Exact pull-through-cache-rule CRN, intersected with `name`. Malformed CRN syntax returns 400 INVALID_INPUT. A valid CRN for a different service, type, region or account returns an empty list. Slash-bearing prefixes remain part of the opaque rule name.
+
+### `registry()->describeRepositories()`
+
+List repositories
+
+`GET /v1/repositories` → `Result`
+
+Query fields:
+
+- `name` (string): Exact, account-scoped immutable repository name or cache-rule prefix. Slash-bearing names are accepted. Intersects with `crn` before pagination.
+- `crn` (string): Exact repository CRN, intersected with `name` before pagination. Malformed CRN syntax returns 400 INVALID_INPUT. A valid CRN for a different service, type, region or account returns an empty page.
+- `marker` (string): Id of the last item on the previous page.
+- `limit` (integer): Maximum items to return.
+
+### `registry()->describeRepository()`
+
+Describe a repository
+
+`GET /v1/repositories/{repository_id}` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+### `registry()->getAuthorizationToken()`
+
+Get a docker login credential
+
+`POST /v1/authorization-token` → `Result`
+
+### `registry()->getEncryptionConfiguration()`
+
+Get the encryption configuration
+
+`GET /v1/encryption-configuration` → `Result`
+
+### `registry()->getLifecyclePolicy()`
+
+Get the lifecycle policy
+
+`GET /v1/repositories/{repository_id}/lifecycle-policy` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+### `registry()->getRepositoryPolicy()`
+
+Get the repository policy
+
+`GET /v1/repositories/{repository_id}/policy` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+### `registry()->getRetainedRegistryPresence()`
+
+Check retained registry data presence
+
+`GET /v1/encryption-configuration/retained-data` → `Result`
+
+### `registry()->listTags()`
+
+List tags
+
+`GET /v1/repositories/{repository_id}/tags` → `Page`
+
+Path arguments, in order: `repositoryId`.
+
+Query fields:
+
+- `marker` (string): Name of the last tag on the previous page. Tags are ordered lexically, so the cursor is a name rather than an id.
+- `limit` (integer): Maximum items to return.
+
+### `registry()->putEncryptionConfiguration()`
+
+Set the encryption configuration
+
+`PUT /v1/encryption-configuration` → `Result`
+
+Body fields:
+
+- `encryption_type` (string, required): Required. Inferring it from whether `kms_key` is present would make "move me back to the platform key" indistinguishable from a client that forgot the field.
+- `kms_key` (string): KMS key UUID, CRN or account-scoped name. Required with `kms`, and refused with `platform_managed` rather than ignored — the two together are contradictory, and guessing which was meant could leave content under a key the caller did not intend.
+
+### `registry()->putLifecyclePolicy()`
+
+Set the lifecycle policy
+
+`PUT /v1/repositories/{repository_id}/lifecycle-policy` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Body fields:
+
+- `rules` (array, required):
+
+### `registry()->setRepositoryPolicy()`
+
+Set the repository policy
+
+`PUT /v1/repositories/{repository_id}/policy` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Body fields:
+
+- `document` (object, required): A resource-based policy. Unlike an IAM policy, every statement must name a principal — the document is attached to a resource, so "who" cannot be implied by attachment.
+
+### `registry()->startLifecyclePolicyPreview()`
+
+Preview a lifecycle policy
+
+`POST /v1/repositories/{repository_id}/lifecycle-policy/preview` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Body fields:
+
+- `rules` (array, required):
+
+### `registry()->updatePullThroughCacheRule()`
+
+Update a pull-through cache rule
+
+`PATCH /v1/pull-through-cache-rules/{prefix}` → `Result`
+
+Path arguments, in order: `prefix`.
+
+Body fields:
+
+- `upstream_registry` (string):
+- `upstream_prefix` (string):
+- `upstream_username` (string):
+- `upstream_secret` (string):
+
+### `registry()->updateRepository()`
+
+Update repository settings
+
+`PATCH /v1/repositories/{repository_id}` → `Result`
+
+Path arguments, in order: `repositoryId`.
+
+Body fields:
+
+- `tag_mutability` (string):
+- `deletion_protection` (boolean):
+- `tags` (object):
 
 ## Secrets
 
@@ -4065,6 +5487,28 @@ Path arguments, in order: `bucket`, `uploadId`, `partNumber`.
 
 ## Telemetry
 
+### `telemetry()->createAlert()`
+
+Create a metric alert
+
+`POST /v1/alerts` → `Result`
+
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
+Body fields:
+
+- `name` (string, required): Immutable account-unique name. UUID names and the crn: prefix are reserved.
+- `topic` (string, required): Required same-account, same-region notification topic reference: UUID, canonical CRN or exact name, classified by syntax. Multiple alerts may share a topic. Binding requires notifications:Publish and respects explicit topic-policy denies.
+- `expression` (object, required):
+- `operator` (string, required):
+- `threshold` (number, required):
+- `window_seconds` (integer, required): Whole-minute window. Evaluated every minute against the last complete UTC-aligned window.
+- `for_seconds` (integer, required): Continuous breach duration before firing; 0 fires immediately. Missing data, query failures and scheduling gaps reset a pending duration.
+- `enabled` (boolean):
+- `silenced_until` (string): Mute notifications until this instant (at most 30 days ahead). Evaluation continues; null removes silence. An active alert notifies on the next evaluation after silence expires.
+
 ### `telemetry()->createLogGroup()`
 
 Create a log group
@@ -4083,6 +5527,14 @@ Body fields:
 - `kms_key` (string): KMS key UUID, CRN or exact name in the authenticated account and serving region. The resolved UUID is pinned; deleting a key and reusing its name never retargets existing data. An empty string selects plaintext.
 - `tags` (object):
 
+### `telemetry()->deleteAlert()`
+
+Delete a metric alert
+
+`DELETE /v1/alerts/{id}` → `void`
+
+Path arguments, in order: `id`.
+
 ### `telemetry()->deleteLogGroup()`
 
 Delete a log group
@@ -4096,6 +5548,16 @@ Path arguments, in order: `id`.
 Delete trace settings
 
 `DELETE /v1/trace-settings` → `void`
+
+`getAlertByReference(...)` resolves an ID, CRN, or scoped name.
+
+### `telemetry()->getAlert()`
+
+Get a metric alert
+
+`GET /v1/alerts/{id}` → `Result`
+
+Path arguments, in order: `id`.
 
 ### `telemetry()->getLog()`
 
@@ -4154,6 +5616,20 @@ Ingest a batch of trace spans
 Body fields:
 
 - `spans` (array, required):
+
+### `telemetry()->listAlerts()`
+
+List metric alerts
+
+`GET /v1/alerts` → `Page`
+
+Query fields:
+
+- `name` (string): Exact name filter; an explicitly empty name matches nothing.
+- `crn` (string): Exact canonical alert CRN, intersected with name and state. Empty/malformed CRNs return 400; valid foreign CRNs return an empty page.
+- `state` (string): Filter effective state. Disabled takes precedence over silenced; otherwise uses evaluation state.
+- `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
+- `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
 
 ### `telemetry()->listLogGroups()`
 
@@ -4332,6 +5808,25 @@ Query fields:
 - `min_duration_ms` (number): Filter to traces whose end-to-end duration is at least this many ms
 - `limit` (integer): Maximum number of items to return. A value above the maximum is clamped to it rather than rejected, so a page shorter than the one you asked for is normal — page until `meta.has_more` is false, not until a page looks short.
 - `marker` (string): Opaque pagination cursor. Echo back the `meta.marker` value from the previous page to fetch the next one; do not construct or parse it. The token's internal form varies by endpoint (a resource ID, a timestamp, …) and is not guaranteed stable across releases.
+
+### `telemetry()->updateAlert()`
+
+Update a metric alert
+
+`PATCH /v1/alerts/{id}` → `Result`
+
+Path arguments, in order: `id`.
+
+Body fields:
+
+- `topic` (string): Required same-account, same-region notification topic reference: UUID, canonical CRN or exact name, classified by syntax. Multiple alerts may share a topic. Binding requires notifications:Publish and respects explicit topic-policy denies.
+- `expression` (object):
+- `operator` (string):
+- `threshold` (number):
+- `window_seconds` (integer): Whole-minute window. Evaluated every minute against the last complete UTC-aligned window.
+- `for_seconds` (integer): Continuous breach duration before firing; 0 fires immediately. Missing data, query failures and scheduling gaps reset a pending duration.
+- `enabled` (boolean):
+- `silenced_until` (string): Mute notifications until this instant (at most 30 days ahead). Evaluation continues; null removes silence. An active alert notifies on the next evaluation after silence expires.
 
 ### `telemetry()->updateLogGroup()`
 
