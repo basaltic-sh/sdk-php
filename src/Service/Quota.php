@@ -35,7 +35,7 @@ final class Quota extends AbstractService
             'content_type' => '',
             'body_shape' => [],
             'accept' => 'application/json',
-            'items_key' => 'quotas',
+            'items_key' => null,
         ],
     ];
 
@@ -43,19 +43,8 @@ final class Quota extends AbstractService
      * List quotas
      * @param array<string, mixed> $query
      */
-    public function listQuotas(array $query = [], ?RequestOptions $options = null): Page
+    public function listQuotas(array $query = [], ?RequestOptions $options = null): Result
     {
-        return $this->page('listQuotas', [], null, $query, $options);
-    }
-
-    /** @param array<string, mixed> $query
-     * @return \Generator<int, mixed>
-     */
-    public function listQuotasAll(array $query = [], ?RequestOptions $options = null): \Generator
-    {
-        return Page::iterate(
-            fn (string $marker): Page => $this->listQuotas($query, $options),
-            (string) ($query['marker'] ?? ''),
-        );
+        return $this->result('listQuotas', [], null, $query, $options);
     }
 }

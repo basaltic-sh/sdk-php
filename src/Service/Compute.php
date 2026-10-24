@@ -887,6 +887,10 @@ final class Compute extends AbstractService
             'body_shape' => [
                 'type' => 'object',
                 'properties' => [
+                    'scale_in_instances' => [
+                        'type' => 'array',
+                        'items' => [],
+                    ],
                     'subnets' => [
                         'type' => 'array',
                         'items' => [],
@@ -943,6 +947,22 @@ final class Compute extends AbstractService
                         ],
                     ],
                 ],
+            ],
+            'accept' => 'application/json',
+            'items_key' => null,
+        ],
+        'updateInstancePoolMemberProtection' => [
+            'id' => 'updateInstancePoolMemberProtection',
+            'method' => 'PATCH',
+            'path' => '/v1/instance-pools/{pool_id}/instances/{instance_id}',
+            'authenticated' => true,
+            'required_query' => [],
+            'required_headers' => [],
+            'query_encoding' => [],
+            'body_required' => true,
+            'content_type' => 'application/json',
+            'body_shape' => [
+                'type' => 'object',
             ],
             'accept' => 'application/json',
             'items_key' => null,
@@ -1444,6 +1464,15 @@ final class Compute extends AbstractService
     public function updateInstancePool(string $poolId, array|\stdClass $body, ?RequestOptions $options = null): Result
     {
         return $this->result('updateInstancePool', ['pool_id' => $poolId], $body, [], $options);
+    }
+
+    /**
+     * Update member scale-in protection
+     * @param array<string, mixed>|\stdClass $body
+     */
+    public function updateInstancePoolMemberProtection(string $poolId, string $instanceId, array|\stdClass $body, ?RequestOptions $options = null): Result
+    {
+        return $this->result('updateInstancePoolMemberProtection', ['pool_id' => $poolId, 'instance_id' => $instanceId], $body, [], $options);
     }
 
     /**

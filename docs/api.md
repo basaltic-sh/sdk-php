@@ -773,8 +773,13 @@ Update an instance pool's description, size, tags or launch template
 
 Path arguments, in order: `poolId`.
 
+Headers (RequestOptions) fields:
+
+- `Idempotency-Key` (string): Optional client-generated key that makes a create replay-safe. Retrying a request with the same key returns the original outcome verbatim instead of creating a duplicate resource. Reusing a key with a different request body is rejected (422); a request whose key is still being processed returns 409. Records are honored for 24 hours. Use a UUID or similarly unique token.
+
 Body fields:
 
+- `scale_in_instances` (array): Exact member UUIDs to retire. Requires an explicit lower desired_count and exactly current desired_count minus new desired_count members. The pool must have converged membership and no retirement or refresh in progress. Selected members must belong to this pool and be unprotected. Only sizing and autoscaling fields may accompany selection. Selection and sizing are committed atomically; stale or protected selections return 409 without substituting another member. Use Idempotency-Key when retrying.
 - `subnets` (array): Replace the eligible placement set. Omit to preserve it. Affects future launches; run an explicit refresh to move existing members. All selected subnets must share a VPC.
 - `autoscaling` (object): Target tracking shared by instance pools and load balancers. Updates replace the policy. Set enabled=false to retain settings and use manual sizing. Each metric recommends a desired count; the largest recommendation wins. Missing, stale or incomplete observations prevent scale-in but do not block scale-out recommended by another valid metric. Decisions obey the resource's min_count/max_count, warmup, cooldown, stabilization, step limits and quotas. State survives controller restarts. Active policies own desired_count; manual changes are accepted and automatic evaluation resumes after cooldown. Custom telemetry requires telemetry:ReadMetrics in the same account.
 - `description` (string): Customer note on the pool. Omit to preserve it; send an empty string to clear it. Changes no instances, sizing or launch configuration.
@@ -783,6 +788,18 @@ Body fields:
 - `min_count` (integer): New lower bound; omitted desired_count rises to this bound if needed.
 - `max_count` (integer): New upper bound; omitted desired_count falls to this bound if needed. A value of 0 means the pool holds no members until max_count is raised.
 - `template` (object): Replaces the launch config WHOLESALE — the object you send is what the pool launches next, and anything you leave out is cleared rather than kept. Replacement rather than a deep merge so a shorter `networks` or `volumes` cannot be read as a truncation and silently drop an interface or a disk.
+
+### `compute()->updateInstancePoolMemberProtection()`
+
+Update member scale-in protection
+
+`PATCH /v1/instance-pools/{pool_id}/instances/{instance_id}` → `Result`
+
+Path arguments, in order: `poolId`, `instanceId`.
+
+Body fields:
+
+- `scale_in_protected` (boolean, required): Protect this member from manual and automatic scale-in. Remove protection before selecting it for scale-in. Cannot change a retiring member. Explicit refresh, failed-instance replacement, instance deletion and pool deletion are unaffected. Replacement instances start unprotected.
 
 ### `compute()->updateInstanceVolumeAttachment()`
 
@@ -1813,7 +1830,7 @@ Body fields:
 
 - `name` (string, required):
 - `public_key` (string, required): One OpenSSH public key. Ed25519, ECDSA, security-key variants, and RSA of at least 2048 bits are supported. Private keys, certificates, multiple keys and authorized_keys options are rejected.
-- `expires_at` (string): Optional expiry at least one minute in the future. Rotation requires a new credential and revocation of the old one.
+- `expires_at` (string): Optional expiry at least one minute in the future. Expired keys stop authorizing new logins and stop consuming quota immediately; records are automatically deleted after seven days by an hourly cleanup. Rotation requires a new credential and revocation of the old one.
 
 ### `iam()->createPolicy()`
 
@@ -1890,7 +1907,7 @@ Body fields:
 
 - `name` (string, required):
 - `public_key` (string, required): One OpenSSH public key. Ed25519, ECDSA, security-key variants, and RSA of at least 2048 bits are supported. Private keys, certificates, multiple keys and authorized_keys options are rejected.
-- `expires_at` (string): Optional expiry at least one minute in the future. Rotation requires a new credential and revocation of the old one.
+- `expires_at` (string): Optional expiry at least one minute in the future. Expired keys stop authorizing new logins and stop consuming quota immediately; records are automatically deleted after seven days by an hourly cleanup. Rotation requires a new credential and revocation of the old one.
 
 ### `iam()->deleteOIDCProvider()`
 
@@ -4428,11 +4445,11 @@ Body fields:
 
 List quotas
 
-`GET /v1/quotas` → `Page`
+`GET /v1/quotas` → `Result`
 
 Query fields:
 
-- `region` (string): Region to filter regional quotas by. Omit for global only.
+- `region` (string): Region for organization resource quotas and Email policies. Omit for global resource quotas only.
 
 ## Registry
 
