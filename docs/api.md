@@ -208,7 +208,7 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `name` (string, required): Unique per account. Surfaces in the CRN (`crn:certificate::<account>:certificate/<name>`), so it must be URL-safe — letters, digits, dot, dash, underscore. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+- `name` (string, required): Unique per account and region. Surfaces in the CRN (`crn:certificate:<region>:<account>:certificate/<name>`), so it must be URL-safe — letters, digits, dot, dash, underscore. Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
 - `domains` (array, required): Capped at 100 to stay inside the certificate authority's per-order limits.
 - `key_algorithm` (string):
 - `source` (string):
@@ -2688,7 +2688,7 @@ Headers (RequestOptions) fields:
 
 Body fields:
 
-- `certificate` (string, required): The certificate to serve, by CRN, UUID or exact account-scoped name. Certificate CRNs require an empty region. The listener stores a reference — no key material is sent here, and the replicas fetch it from the certificate service under their own identity.
+- `certificate` (string, required): The certificate to serve, by CRN, UUID or exact account-scoped name. The certificate must belong to the listener's region. Legacy regionless CRNs resolve within that region. The listener stores a reference — no key material is sent here, and the replicas fetch it from the certificate service under their own identity.
 - `is_default` (boolean): When true, demote whatever's currently default and promote this cert in the same transaction.
 
 ### `loadbalancer()->attachTarget()`
